@@ -1,0 +1,115 @@
+﻿using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Text.Json;
+
+namespace Denomica.Cosmos.Configuration
+{
+    /// <summary>
+    /// Provides a builder for configuring Cosmos-related services in an application.
+    /// </summary>
+    /// <remarks>This class is used to configure and register services related to Cosmos DB within the
+    /// provided <see cref="IServiceCollection"/>. It is typically used in application startup to set up Cosmos-specific
+    /// dependencies.</remarks>
+    public class CosmosExtensionsBuilder
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CosmosExtensionsBuilder"/> class.
+        /// </summary>
+        /// <param name="services">The collection of service descriptors to configure Cosmos-related services.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <see langword="null"/>.</exception>
+        public CosmosExtensionsBuilder(IServiceCollection services)
+        {
+            this.Services = services ?? throw new ArgumentNullException(nameof(services));
+        }
+
+
+        /// <summary>
+        /// Gets the collection of service descriptors used to configure dependency injection.
+        /// </summary>
+        public IServiceCollection Services { get; private set; }
+
+
+
+        /// <summary>
+        /// Configures the application to use a data access service with the specified Cosmos DB connection options.
+        /// </summary>
+        /// <remarks>This method registers the necessary services for interacting with Cosmos DB,
+        /// including the <see cref="CosmosClient"/>, the <see cref="Container"/>, and a custom
+        /// <c>DataAccessService</c>. The <paramref name="configureOptions"/> delegate is used to configure the
+        /// connection options, such as the connection string, database ID, and container ID.</remarks>
+        /// <param name="configureOptions">A delegate that configures the <see cref="CosmosConnectionOptions"/> using the provided <see
+        /// cref="IServiceProvider"/>.</param>
+        /// <returns>The current <see cref="CosmosExtensionsBuilder"/> instance, allowing for method chaining.</returns>
+        public CosmosExtensionsBuilder WithDataAccessService(Action<CosmosConnectionOptions, IServiceProvider> configureOptions)
+        {
+            this.Services
+                .AddOptions<CosmosConnectionOptions>()
+                .Configure<IServiceProvider>(configureOptions)
+                .Services
+
+                .AddSingleton<CosmosClient>(sp =>
+                {
+                    var connectionOptions = sp.GetRequiredService<IOptions<CosmosConnectionOptions>>().Value;
+                    var clientOptions = sp.GetRequiredService<IOptions<CosmosClientOptions>>().Value;
+                    return new CosmosClient(connectionOptions.ConnectionString, clientOptions);
+                })
+                .AddSingleton<Container>(sp =>
+                {
+                    var connectionOptions = sp.GetRequiredService<IOptions<CosmosConnectionOptions>>().Value;
+                    var client = sp.GetRequiredService<CosmosClient>();
+                    return client.GetContainer(connectionOptions.DatabaseId, connectionOptions.ContainerId);
+                })
+                .AddSingleton<ContainerAdapter>(sp =>
+                {
+                    var container = sp.GetRequiredService<Container>();
+                    return new ContainerAdapter(container);
+                })
+                ;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Configures the <see cref="CosmosClientOptions"/> for the Cosmos DB client.
+        /// </summary>
+        /// <remarks>Use this method to customize the <see cref="CosmosClientOptions"/> for the Cosmos DB
+        /// client, such as setting connection policies, retry options, or other client-specific
+        /// configurations.</remarks>
+        /// <param name="configureOptions">A delegate that configures the <see cref="CosmosClientOptions"/> using the provided <see
+        /// cref="IServiceProvider"/>.</param>
+        /// <returns>The current <see cref="CosmosExtensionsBuilder"/> instance, allowing for method chaining.</returns>
+        public CosmosExtensionsBuilder WithCosmosClientOptions(Action<CosmosClientOptions, IServiceProvider> configureOptions)
+        {
+            this.Services
+                .AddOptions<CosmosClientOptions>()
+                .Configure<IServiceProvider>(configureOptions)
+                ;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Configures JSON serialization options for the application.
+        /// </summary>
+        /// <remarks>This method allows customization of JSON serialization behavior by modifying the <see
+        /// cref="JsonSerializerOptions"/> used throughout the application. The provided delegate is invoked to apply
+        /// the desired configuration.</remarks>
+        /// <param name="configureOptions">A delegate that configures an instance of <see cref="JsonSerializerOptions"/> using the provided <see
+        /// cref="IServiceProvider"/>.</param>
+        /// <returns>The current instance of <see cref="CosmosExtensionsBuilder"/> to allow for method chaining.</returns>
+        public CosmosExtensionsBuilder WithJsonSerializationOptions(Action<JsonSerializerOptions, IServiceProvider> configureOptions)
+        {
+            this.Services
+                .AddOptions<JsonSerializerOptions>()
+                .Configure<IServiceProvider>(configureOptions)
+                ;
+
+            return this;
+        }
+
+    }
+}

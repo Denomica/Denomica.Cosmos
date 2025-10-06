@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<Nullable>enable</Nullable>
+		<Version>1.0.0-beta.1</Version>
+		<Company>Denomica Oy</Company>
+		<Authors>MikaBerglund</Authors>
+		<Copyright>Copyright (c) 2025 Denomica Oy</Copyright>
+		<PackageProjectUrl>https://github.com/Denomica/Denomica.Cosmos</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Denomica/Denomica.Cosmos</RepositoryUrl>
+		<PackageTags>Azure;Cosmos DB</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<Title>Denomica.Cosmos</Title>
+		<RepositoryType>git</RepositoryType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Denomica.Text.Json" Version="1.0.8" />
+		<PackageReference Include="Microsoft.Azure.Cosmos" Version="3.44.1" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\Denomica.Cosmos.Model\Denomica.Cosmos.Model.csproj" />
+	</ItemGroup>
+
+</Project>

@@ -1,0 +1,16 @@
+﻿<Project Sdk="MSTest.Sdk/3.6.4">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseVSTest>true</UseVSTest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Denomica.Cosmos.Model\Denomica.Cosmos.Model.csproj" />
+    <ProjectReference Include="..\Denomica.Cosmos\Denomica.Cosmos.csproj" />
+  </ItemGroup>
+
+</Project>
