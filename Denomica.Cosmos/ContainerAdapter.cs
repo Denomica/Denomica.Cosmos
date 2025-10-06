@@ -173,6 +173,28 @@ namespace Denomica.Cosmos
         }
 
         /// <summary>
+        /// Asynchronously retrieves the first item from the query results or <see langword="null"/> if no items are found.
+        /// </summary>
+        /// <remarks>
+        /// This method executes the query with a maximum item count of 1, ensuring that at most one item is retrieved.
+        /// </remarks>
+        /// <typeparam name="TItem">The type of the item to retrieve. Must be a reference type.</typeparam>
+        /// <param name="query">The <see cref="QueryDefinition"/> that defines the query to execute.</param>
+        /// <param name="returnAs">
+        /// An optional <see cref="Type"/> specifying the desired runtime type for the returned item. If specified, it MUST be a 
+        /// subtype of <typeparamref name="TItem"/>. If not specified, the items are returned as the type <typeparamref name="TItem"/>.
+        /// </param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the first item of type 
+        /// <typeparamref name="TItem"/> from the query results, or <see langword="null"/> if no items are found.
+        /// </returns>
+        public async Task<TItem?> FirstOrDefaultAsync<TItem>(QueryDefinition query, Type? returnAs = null) where TItem : class
+        {
+            var result = await this.QueryItemsAsync<TItem>(query, returnAs: returnAs, requestOptions: new QueryRequestOptions { MaxItemCount = 1 }).ToListAsync();
+            return result.FirstOrDefault();
+        }
+
+        /// <summary>
         /// Asynchronously retrieves the first element of a queryable sequence, or a default value if the sequence is
         /// empty.
         /// </summary>

@@ -104,7 +104,7 @@ namespace Denomica.Cosmos.Tests
             object partition = Guid.NewGuid();
 
             var item = new Item1 { Partition = $"{partition}" };
-            var upserted = await Adapter.UpsertItemAsync(item);
+            var response = await Adapter.UpsertItemAsync(item);
 
             await Adapter.DeleteItemAsync(item.Id, $"{partition}");
 
@@ -390,10 +390,9 @@ namespace Denomica.Cosmos.Tests
 
         private async Task<int> GetContainerCountAsync()
         {
-            var query = new QueryDefinition("select count(1) from c");
-            var result = await Adapter.QueryItemsAsync<Dictionary<string, JsonElement>>(query).ToListAsync();
-            var count = result.First()["$1"];
-            return count.GetInt32();
+            var query = new QueryDefinition("select count(1) as itemCount from c");
+            var result = await Adapter.FirstOrDefaultAsync<ItemCountEntity>(query);// .QueryItemsAsync(query).ToListAsync();
+            return result?.ItemCount ?? 0;
         }
     }
 
@@ -446,5 +445,10 @@ namespace Denomica.Cosmos.Tests
         {
             return $"{base.ToString()}|{this.DisplayName}";
         }
+    }
+
+    public class ItemCountEntity
+    {
+        public int ItemCount { get; set; }
     }
 }
