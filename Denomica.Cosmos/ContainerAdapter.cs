@@ -290,7 +290,7 @@ namespace Denomica.Cosmos
         /// </returns>
         public async Task<QueryResult<TItem>> QueryFeedAsync<TItem>(QueryDefinition query, string? continuationToken = null, Type? returnAs = null, QueryRequestOptions? requestOptions = null)
         {
-            QueryResult<TItem> result = new QueryResult<TItem>(this, query, returnAs: returnAs);
+            QueryResult<TItem> result = new QueryResult<TItem>(this, query, returnAs: returnAs, requestOptions: requestOptions);
             var items = new List<TItem>();
 
             var feedResult = await this.QueryFeedAsync(query, continuationToken: continuationToken, requestOptions: requestOptions);
@@ -300,9 +300,10 @@ namespace Denomica.Cosmos
 
             foreach(var item in feedResult.Items)
             {
-
+                items.Add(this.Convert<TItem>(item, returnAs: returnAs));
             }
 
+            result.Items = items;
             return result;
         }
 
@@ -326,7 +327,7 @@ namespace Denomica.Cosmos
         /// such as the continuation token, status code, and request charge.</returns>
         public async Task<QueryResult<Dictionary<string, object?>>> QueryFeedAsync(QueryDefinition query, string? continuationToken = null, QueryRequestOptions? requestOptions = null)
         {
-            QueryResult<Dictionary<string, object?>> result = new QueryResult<Dictionary<string, object?>>(this, query);
+            QueryResult<Dictionary<string, object?>> result = new QueryResult<Dictionary<string, object?>>(this, query, requestOptions: requestOptions);
             var items = new List<Dictionary<string, object?>>();
             var iterator = this.Container.GetItemQueryIterator<Dictionary<string, object?>>(query, continuationToken, requestOptions: requestOptions);
             

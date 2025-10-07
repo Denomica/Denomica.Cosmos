@@ -332,17 +332,25 @@ namespace Denomica.Cosmos.Tests
         [Description("Create an uneven number of items and page through the results and make sure that each page contains items.")]
         public async Task Query07()
         {
-            for(var i = 0; i < 57; i++)
+            int count = 57;
+            for(var i = 0; i < count; i++)
             {
                 await Adapter.UpsertItemAsync(new { Id = Guid.NewGuid() });
             }
 
-            var result = await Adapter.QueryFeedAsync(new QueryDefinition("select * from c"), requestOptions: new QueryRequestOptions { MaxItemCount = 11 });
-            while(null != result)
+            int pageCount = 0, itemCount = 0, maxItemCount = 11;
+            var result = await Adapter.QueryFeedAsync(new QueryDefinition("select * from c"), requestOptions: new QueryRequestOptions { MaxItemCount = maxItemCount });
+            while(result.HasItems)
             {
-                Assert.IsTrue(result.Items.Any(), "There must be items in each result.");
+                Assert.IsTrue(result.Items.Count() <= maxItemCount);
+
+                pageCount++;
+                itemCount += result.Items.Count();
                 result = await result.GetNextResultAsync();
             }
+
+            Assert.AreEqual(6, pageCount);
+            Assert.AreEqual(count, itemCount);
         }
 
         [TestMethod]

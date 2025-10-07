@@ -58,6 +58,11 @@ namespace Denomica.Cosmos
         public string? ContinuationToken { get; internal set; }
 
         /// <summary>
+        /// Gets a value indicating whether the collection contains any items.
+        /// </summary>
+        public bool HasItems => this.Items.Any();
+
+        /// <summary>
         /// The request charge for producing the items in <see cref="Items"/>.
         /// </summary>
         public double RequestCharge { get; internal set; }
