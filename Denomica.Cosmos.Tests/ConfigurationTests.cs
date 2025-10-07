@@ -32,7 +32,7 @@ namespace Denomica.Cosmos.Tests
         {
             var provider = new ServiceCollection()
                 .AddCosmosServices()
-                .WithDataAccessService((opt, sp) =>
+                .WithContainerAdapter((opt, sp) =>
                 {
                     opt.ConnectionString = ConnectionOptions.ConnectionString;
                     opt.DatabaseId = ConnectionOptions.DatabaseId;
@@ -51,7 +51,7 @@ namespace Denomica.Cosmos.Tests
         {
             var provider = new ServiceCollection()
                 .AddCosmosServices()
-                .WithDataAccessService((opt, sp) =>
+                .WithContainerAdapter((opt, sp) =>
                 {
                     opt.ConnectionString = ConnectionOptions.ConnectionString;
                     opt.DatabaseId = ConnectionOptions.DatabaseId;

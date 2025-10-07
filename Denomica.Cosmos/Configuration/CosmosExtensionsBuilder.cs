@@ -35,16 +35,17 @@ namespace Denomica.Cosmos.Configuration
 
 
         /// <summary>
-        /// Configures the application to use a data access service with the specified Cosmos DB connection options.
+        /// Configures the <see cref="ContainerAdapter"/> instance for your application with the specified connection options
+        /// and all services that the <see cref="ContainerAdapter"/> instance requires.
         /// </summary>
-        /// <remarks>This method registers the necessary services for interacting with Cosmos DB,
-        /// including the <see cref="CosmosClient"/>, the <see cref="Container"/>, and a custom
-        /// <c>DataAccessService</c>. The <paramref name="configureOptions"/> delegate is used to configure the
-        /// connection options, such as the connection string, database ID, and container ID.</remarks>
+        /// <remarks>This method registers the necessary services for interacting with a Cosmos DB
+        /// container, including <see cref="CosmosClient"/>, <see cref="Container"/>, and <see
+        /// cref="ContainerAdapter"/>. The provided <paramref name="configureOptions"/> delegate is used to configure
+        /// the connection options required to establish the Cosmos DB connection.</remarks>
         /// <param name="configureOptions">A delegate that configures the <see cref="CosmosConnectionOptions"/> using the provided <see
         /// cref="IServiceProvider"/>.</param>
         /// <returns>The current <see cref="CosmosExtensionsBuilder"/> instance, allowing for method chaining.</returns>
-        public CosmosExtensionsBuilder WithDataAccessService(Action<CosmosConnectionOptions, IServiceProvider> configureOptions)
+        public CosmosExtensionsBuilder WithContainerAdapter(Action<CosmosConnectionOptions, IServiceProvider> configureOptions)
         {
             this.Services
                 .AddOptions<CosmosConnectionOptions>()
@@ -66,7 +67,8 @@ namespace Denomica.Cosmos.Configuration
                 .AddSingleton<ContainerAdapter>(sp =>
                 {
                     var container = sp.GetRequiredService<Container>();
-                    return new ContainerAdapter(container);
+                    var jsonOptions = sp.GetRequiredService<IOptions<JsonSerializerOptions>>().Value;
+                    return new ContainerAdapter(container, serializationOptions: jsonOptions);
                 })
                 ;
 

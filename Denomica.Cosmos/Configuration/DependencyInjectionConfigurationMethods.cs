@@ -50,6 +50,8 @@ namespace Microsoft.Extensions.DependencyInjection
                     options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                     options.PropertyNameCaseInsensitive = true;
                     options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+
+                    Denomica.Text.Json.JsonUtil.AddSerializationConverters(options);
                 })
                 ;
         }

@@ -7,6 +7,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Denomica.Text.Json;
+using System.IO;
+using System.ComponentModel.DataAnnotations;
+using System.Net;
 
 namespace Denomica.Cosmos
 {
@@ -166,7 +170,7 @@ namespace Denomica.Cosmos
         /// <param name="query">The <see cref="QueryDefinition"/> that defines the query to execute.</param>
         /// <returns>A <see cref="JsonElement"/> representing the first item in the query results, or <see langword="null"/> if
         /// the query returns no items.</returns>
-        public async Task<JsonElement?> FirstOrDefaultAsync(QueryDefinition query)
+        public async Task<Dictionary<string, object?>?> FirstOrDefaultAsync(QueryDefinition query)
         {
             var result = await this.QueryItemsAsync(query, requestOptions: new QueryRequestOptions { MaxItemCount = 1 }).ToListAsync();
             return result.FirstOrDefault();
@@ -222,6 +226,23 @@ namespace Denomica.Cosmos
             return result.FirstOrDefault();
         }
 
+        /// <summary>
+        /// Retrieves the first item from the container that matches the specified <paramref name="id"/> and <paramref
+        /// name="partitionKey"/>.
+        /// </summary>
+        /// <param name="id">The unique identifier of the item to retrieve.</param>
+        /// <param name="partitionKey">The partition key associated with the item.</param>
+        /// <returns>A dictionary representing the item's properties if the item is found and the operation is successful;
+        /// otherwise, <see langword="null"/>.</returns>
+        public async Task<Dictionary<string, object?>?> FirstOrDefaultAsync(string id, PartitionKey partitionKey)
+        {
+            var response = await this.Container.ReadItemAsync<Dictionary<string, object?>>(id, partitionKey);
+            if(response.StatusCode == HttpStatusCode.OK)
+            {
+                return response.Resource;
+            }
+            return null;
+        }
 
 
         /// <summary>
@@ -272,23 +293,57 @@ namespace Denomica.Cosmos
             QueryResult<TItem> result = new QueryResult<TItem>(this, query, returnAs: returnAs);
             var items = new List<TItem>();
 
-            var iterator = this.Container.GetItemQueryIterator<JsonElement>(query, continuationToken, requestOptions: requestOptions);
+            var feedResult = await this.QueryFeedAsync(query, continuationToken: continuationToken, requestOptions: requestOptions);
+            result.ContinuationToken = feedResult.ContinuationToken;
+            result.RequestCharge = feedResult.RequestCharge;
+            result.StatusCode = feedResult.StatusCode;
+
+            foreach(var item in feedResult.Items)
+            {
+
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Executes a query against the underlying Cosmos DB container, and returns the results as a feed of items with an optional
+        /// continuation token to be used to get the next set of results (feed).
+        /// </summary>
+        /// <remarks>This method uses the Cosmos DB SDK to execute the query and retrieve results. If the
+        /// query  spans multiple pages, the continuation token can be used to fetch subsequent pages.</remarks>
+        /// <param name="query">The <see cref="QueryDefinition"/> that defines the query to execute.</param>
+        /// <param name="continuationToken">
+        /// An optional token used to continue a query from where it left off in a previous execution. Pass <see langword="null"/>
+        /// to start a new query.
+        /// </param>
+        /// <param name="requestOptions">
+        /// Optional <see cref="QueryRequestOptions"/> to configure the query execution, such as setting  limits on
+        /// throughput or defining partition keys.
+        /// </param>
+        /// <returns>A <see cref="QueryResult{T}"/> containing the query results as a collection of dictionaries,  where each
+        /// dictionary represents an item with its properties as key-value pairs. The result  also includes metadata
+        /// such as the continuation token, status code, and request charge.</returns>
+        public async Task<QueryResult<Dictionary<string, object?>>> QueryFeedAsync(QueryDefinition query, string? continuationToken = null, QueryRequestOptions? requestOptions = null)
+        {
+            QueryResult<Dictionary<string, object?>> result = new QueryResult<Dictionary<string, object?>>(this, query);
+            var items = new List<Dictionary<string, object?>>();
+            var iterator = this.Container.GetItemQueryIterator<Dictionary<string, object?>>(query, continuationToken, requestOptions: requestOptions);
+            
             if (iterator.HasMoreResults)
             {
                 var response = await iterator.ReadNextAsync();
-
+                
                 result.ContinuationToken = response.ContinuationToken;
-                result.RequestCharge = response.RequestCharge;
                 result.StatusCode = response.StatusCode;
+                result.RequestCharge = response.RequestCharge;
 
                 foreach (var item in response)
                 {
-                    items.Add(this.Convert<TItem>(item, returnAs: returnAs));
+                    items.Add(item);
                 }
-
                 result.Items = items;
             }
-
             return result;
         }
 
@@ -376,14 +431,15 @@ namespace Denomica.Cosmos
         /// <param name="query">The query to execute.</param>
         /// <param name="requestOptions">Optional query request options to customize the query execution.</param>
         /// <returns>Returns the results as an async enumerable collection.</returns>
-        public async IAsyncEnumerable<JsonElement> QueryItemsAsync(QueryDefinition query, QueryRequestOptions? requestOptions = null)
+        public async IAsyncEnumerable<Dictionary<string, object?>> QueryItemsAsync(QueryDefinition query, QueryRequestOptions? requestOptions = null)
         {
             string? continuationToken = null;
 
             do
             {
-                var result = await this.QueryFeedAsync<JsonElement>(query, continuationToken: continuationToken, requestOptions: requestOptions);
+                var result = await this.QueryFeedAsync(query, continuationToken: continuationToken, requestOptions: requestOptions);
                 continuationToken = result.ContinuationToken;
+
                 foreach (var item in result.Items)
                 {
                     yield return item;
@@ -421,15 +477,35 @@ namespace Denomica.Cosmos
         /// <param name="item">The item to be inserted or updated. Cannot be <see langword="null"/>.</param>
         /// <param name="partitionKey">The partition key associated with the item. If <see langword="null"/>, the default partition key will be
         /// used.</param>
+        /// <param name="requestOptions">Optional. The options for the item request.</param>
         /// <returns>A <see cref="ItemResponse{T}"/> containing the result of the upsert operation, including the item and
         /// metadata such as the status code and request charge.</returns>
         /// <exception cref="CosmosException">Thrown if the upsert operation fails with a non-success status code (outside the range 200-299).</exception>
-        public async Task<ItemResponse<TItem>> UpsertItemAsync<TItem>(TItem item, PartitionKey? partitionKey = null) where TItem : class
+        public async Task<ItemResponse<TItem>> UpsertItemAsync<TItem>(TItem item, PartitionKey? partitionKey = null, ItemRequestOptions? requestOptions = null) where TItem : class
         {
-            var response = await this.Container.UpsertItemAsync<TItem>(item, partitionKey: partitionKey);
-            if((int)response.StatusCode < 200 || (int)response.StatusCode >= 300)
+            ItemResponse<TItem> response = null!;
+
+            response = await this.Container.UpsertItemAsync<TItem>(item, partitionKey: partitionKey, requestOptions: requestOptions);
+            if ((int)response.StatusCode < 200 || (int)response.StatusCode >= 300)
             {
                 throw new CosmosException($"Upsert operation failed with status code {response.StatusCode}.", response.StatusCode, (int)response.StatusCode, response.ActivityId, response.RequestCharge);
+            }
+
+            if (item.GetType() != typeof(TItem) && null != partitionKey)
+            {
+                // If the item is not exactly the type specified in TItem, it means that it is a subtype.
+                // In that case, we need to retrieve the item from the container, because we might not
+                // have the full updated item in the response from the Upsert method call, becaue the
+                // item is a subtype of TItem.
+                var sourceItem = JsonUtil.CreateDictionary(item);
+                if(sourceItem.TryGetValue("id", out var idObj) && idObj is string id && id.Length > 0)
+                {
+                    var dictionary = await this.FirstOrDefaultAsync(id, partitionKey.Value);
+                    if(null != dictionary)
+                    {
+                        response = new UpsertItemResponse<TItem>(response, this.Convert<TItem>(dictionary, returnAs: item.GetType()));
+                    }
+                }
             }
 
             return response;
@@ -437,20 +513,21 @@ namespace Denomica.Cosmos
 
 
 
-        private TItem Convert<TItem>(JsonElement element, Type? returnAs = null)
+        private TItem Convert<TItem>(Dictionary<string, object?> source, Type? returnAs = null)
         {
             Type targetType = returnAs ?? typeof(TItem);
             TItem resultItem = default!;
             if (null == returnAs)
             {
-                resultItem = JsonSerializer.Deserialize<TItem>(element, options: this.SerializationOptions);
+                resultItem = JsonSerializer.Deserialize<TItem>(JsonSerializer.Serialize(source, options: this.SerializationOptions), options: this.SerializationOptions);
             }
             else
             {
-                resultItem = (TItem)JsonSerializer.Deserialize(element, returnAs, options: this.SerializationOptions);
+                resultItem = (TItem)JsonSerializer.Deserialize(JsonSerializer.Serialize(source, options: this.SerializationOptions), returnAs, options: this.SerializationOptions);
             }
 
-            return resultItem ?? throw new Exception($"Cannot convert given JSON element to type '{targetType.FullName}'.");
+            return resultItem ?? throw new Exception($"Cannot convert given dictionary to type '{targetType.FullName}'.");
         }
+
     }
 }

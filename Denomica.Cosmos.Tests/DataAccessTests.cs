@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System;
 using System.Text.Json;
 using Microsoft.Azure.Cosmos.Linq;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Denomica.Cosmos.Tests
 {
@@ -13,27 +14,25 @@ namespace Denomica.Cosmos.Tests
     {
 
         [ClassInitialize]
-        public static async Task ClassInit(TestContext context)
+        public static void ClassInit(TestContext context)
         {
             var connectionString = $"{context.Properties["connectionString"]}";
             var databaseId = $"{context.Properties["databaseId"]}";
             var containerId = $"{context.Properties["containerId"]}";
 
-            var client = new CosmosClient(connectionString, new CosmosClientOptions { 
-                SerializerOptions = new CosmosSerializationOptions { PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase } 
-            });
-            var database = client.GetDatabase(databaseId);
-            var container = database.GetContainer(containerId);
+            var provider = new ServiceCollection()
+                .AddCosmosServices()
+                .WithContainerAdapter((opt, sp) =>
+                {
+                    opt.ConnectionString = connectionString;
+                    opt.DatabaseId = databaseId;
+                    opt.ContainerId = containerId;
+                })
+                .Services
 
-            try
-            {
-                var deleteResponse = await container.DeleteContainerAsync();
-            }
-            catch { }
+                .BuildServiceProvider();
 
-            var containerResponse = await database.CreateContainerAsync(new ContainerProperties { Id = containerId, PartitionKeyPath = "/partition" });
-            var newContainer = database.GetContainer(containerId);
-            Adapter = new ContainerAdapter(newContainer);
+            Adapter = provider.GetRequiredService<ContainerAdapter>();
         }
 
         private static ContainerAdapter Adapter = null!;
@@ -48,13 +47,12 @@ namespace Denomica.Cosmos.Tests
             await foreach(var item in items)
             {
                 PartitionKey partition = PartitionKey.None;
-                var idProperty = item.GetProperty("id");
-                var id = idProperty.GetString() ?? throw new NullReferenceException();
-                if(item.TryGetProperty("partition", out var p))
+                var id = item["id"] as string ?? throw new NullReferenceException();
+                if(item.TryGetValue("partition", out var partitionValue))
                 {
-                    partition = Adapter.CreatePartitionKey(p);
+                    partition = Adapter.CreatePartitionKey(partitionValue);
                 }
-                tasks.Add(Adapter.DeleteItemAsync(id, partition));
+                tasks.Add(Adapter.DeleteItemAsync(id, partition, throwIfNotfound: false));
             }
 
             await Task.WhenAll(tasks);
@@ -64,6 +62,9 @@ namespace Denomica.Cosmos.Tests
             {
                 throw new Exception("Unable to clear all items from container.");
             }
+
+            var count = await this.GetContainerCountAsync();
+            Assert.AreEqual(0, count);
         }
 
 
@@ -171,13 +172,13 @@ namespace Denomica.Cosmos.Tests
                 var prevValue = p * itemCount + 1;
                 foreach(var item in items)
                 {
-                    var valueProp = item.GetProperty("value");
-                    var val = valueProp.GetInt32();
+                    int val;
+                    item.TryGetValue("value", out var valueObj);
+                    int.TryParse($"{valueObj}", out val);
 
                     Assert.IsTrue(prevValue >= val);
                     prevValue = val;
                 }
-
             }
         }
 
@@ -336,13 +337,84 @@ namespace Denomica.Cosmos.Tests
                 await Adapter.UpsertItemAsync(new { Id = Guid.NewGuid() });
             }
 
-            var result = await Adapter.QueryFeedAsync<JsonElement>(new QueryDefinition("select * from c"), requestOptions: new QueryRequestOptions { MaxItemCount = 11 });
+            var result = await Adapter.QueryFeedAsync(new QueryDefinition("select * from c"), requestOptions: new QueryRequestOptions { MaxItemCount = 11 });
             while(null != result)
             {
                 Assert.IsTrue(result.Items.Any(), "There must be items in each result.");
                 result = await result.GetNextResultAsync();
             }
         }
+
+        [TestMethod]
+        [Description("Queries the underlying container for data.")]
+        public async Task Query08()
+        {
+            var upserted = await Adapter.UpsertItemAsync(new ContainerItem { });
+
+            var result = await Adapter.QueryFeedAsync(new QueryDefinition("select * from c"));
+            Assert.AreEqual(1, result.Items.Count());
+        }
+
+        [TestMethod]
+        [Description("Query the underlying container for all data.")]
+        public async Task Query09()
+        {
+            int count = 78;
+            var taskList = new List<Task>();
+            for(var i = 0; i < count; i++)
+            {
+                taskList.Add(Adapter.UpsertItemAsync(new ContainerItem { }));
+            }
+            await Task.WhenAll(taskList);
+
+            var items = await Adapter.QueryItemsAsync(new QueryDefinition("select * from c"), requestOptions: new QueryRequestOptions { MaxItemCount = 10 }).ToListAsync();
+            Assert.AreEqual(count, items.Count);
+        }
+
+        [TestMethod]
+        [Description("Create more than 100 items and expect all of the items to be returned, even without specifying any request options.")]
+        public async Task Query10()
+        {
+            int count = 243;
+            var taskList = new List<Task>();
+            for (var i = 0; i < count; i++)
+            {
+                taskList.Add(Adapter.UpsertItemAsync(new ContainerItem { }));
+            }
+            await Task.WhenAll(taskList);
+            var items = await Adapter.QueryItemsAsync<ContainerItem>(new QueryDefinition("select * from c")).ToListAsync();
+            Assert.AreEqual(count, items.Count);
+        }
+
+        [TestMethod]
+        [Description("Store one item in the underlying container, and make sure that it returned exactly the same after querying.")]
+        public async Task Query11()
+        {
+            var result = await Adapter.UpsertItemAsync(new ChildItem1 { DisplayName = "Foo Bar", Index = 123 });
+            var expected = result.Resource;
+            var items = await Adapter.QueryItemsAsync<ChildItem1>(x => x.Where(xx => xx.Id == result.Resource.Id)).ToListAsync();
+            Assert.AreEqual(1, items.Count);
+
+            var item = items.First();
+            Assert.AreEqual(expected.Id, item.Id);
+            Assert.AreEqual(expected.Partition, item.Partition);
+            Assert.AreEqual(expected.Index, item.Index);
+            Assert.AreEqual(expected.DisplayName, item.DisplayName);
+        }
+
+        [TestMethod]
+        [Description("Store one item in the container, and query it and make sure that it is identical to the stored.")]
+        public async Task Query12()
+        {
+            var result = await Adapter.UpsertItemAsync(new ContainerItem());
+            var items = await Adapter.QueryItemsAsync<ContainerItem>(x => x.Where(xx => xx.Id == result.Resource.Id)).ToListAsync();
+            Assert.AreEqual(1, items.Count);
+
+            var item = items.First();
+            Assert.AreEqual(result.Resource.Id, item.Id);
+            Assert.AreEqual(result.Resource.Partition, item.Partition);
+        }
+
 
 
         [TestMethod]
@@ -356,6 +428,7 @@ namespace Denomica.Cosmos.Tests
             var count = result.First()["$1"];
             Assert.AreEqual(1, count.GetInt32());
         }
+
 
 
         [TestMethod]
@@ -378,10 +451,10 @@ namespace Denomica.Cosmos.Tests
         {
             var displayName = "Child Item";
             Item1 item = new ChildItem1 { DisplayName = displayName, Partition = Guid.NewGuid().ToString() };
-            Item1 upserted = await Adapter.UpsertItemAsync(item);
+            var upserted = await Adapter.UpsertItemAsync(item, new PartitionKey(item.Partition));
             Assert.IsNotNull(upserted);
-            Assert.IsTrue(upserted is ChildItem1);
-            var item2 = upserted as ChildItem1;
+            Assert.IsTrue(upserted.Resource is ChildItem1);
+            var item2 = upserted.Resource as ChildItem1;
             Assert.IsNotNull(item2);
             Assert.AreEqual(displayName, item2.DisplayName);
         }
@@ -398,16 +471,16 @@ namespace Denomica.Cosmos.Tests
 
     public class ContainerItem
     {
-        public string Id { get; set; } = null!;
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
-        public object Partition { get; set; } = null!;
+        public object Partition { get; set; } = Guid.NewGuid().ToString();
     }
 
     public class Item1
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
 
-        public string Partition { get; set; } = null!;
+        public string Partition { get; set; } = Guid.NewGuid().ToString();
 
         public int Index { get; set; }
 

@@ -6,6 +6,7 @@
 		<Parameter name="containerId" value="cosmos-extensions" />
 	</TestRunParameters>
 	<RunConfiguration>
+		<MaxCpuCount>1</MaxCpuCount>
 		<EnvironmentVariables>
 		</EnvironmentVariables>
 	</RunConfiguration>
