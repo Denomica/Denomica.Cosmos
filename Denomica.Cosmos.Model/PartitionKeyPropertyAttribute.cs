@@ -5,7 +5,7 @@ using System.Text;
 namespace Denomica.Cosmos.Model
 {
     /// <summary>
-    /// An attribute that is used to decorate those properties whose values are used when constructing a synthetic partition key in the <see cref="SyntheticPartitionKeyDocument"/> class.
+    /// An attribute that is used to decorate those properties whose values are used when constructing a synthetic partition key in the <see cref="SyntheticPartitionKeyDocumentBase"/> class.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
     public class PartitionKeyPropertyAttribute : Attribute

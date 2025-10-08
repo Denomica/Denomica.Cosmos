@@ -18,7 +18,7 @@ namespace Denomica.Cosmos.Tests
         public void TestModel01()
         {
             var ts = DateTimeOffset.Now;
-            var model = new SyntheticPartitionKeyDocument();
+            var model = new SyntheticPartitionKeyDocumentBase();
             Assert.IsTrue(model.Created > ts);
             Assert.IsTrue(model.Modified > ts);
         }
@@ -36,8 +36,8 @@ namespace Denomica.Cosmos.Tests
         [TestMethod]
         public void TestModel03()
         {
-            var m = new SyntheticPartitionKeyDocument();
-            Assert.AreEqual(nameof(SyntheticPartitionKeyDocument), m.Partition);
+            var m = new SyntheticPartitionKeyDocumentBase();
+            Assert.AreEqual(nameof(SyntheticPartitionKeyDocumentBase), m.Partition);
         }
 
         [TestMethod]
@@ -107,7 +107,7 @@ namespace Denomica.Cosmos.Tests
         [TestMethod]
         public void TestModelEvents01()
         {
-            var model = new SyntheticPartitionKeyDocument();
+            var model = new SyntheticPartitionKeyDocumentBase();
             DateTimeOffset created = default;
             model.PropertyValueChanged += (s, e) =>
             {
@@ -121,7 +121,7 @@ namespace Denomica.Cosmos.Tests
 
     }
 
-    public class TestDocument : SyntheticPartitionKeyDocument
+    public class TestDocument : SyntheticPartitionKeyDocumentBase
     {
 
         [PartitionKeyProperty(0)]
@@ -206,7 +206,7 @@ namespace Denomica.Cosmos.Tests
     }
 
 
-    public class Person : SyntheticPartitionKeyDocument
+    public class Person : SyntheticPartitionKeyDocumentBase
     {
 
         public string FirstName

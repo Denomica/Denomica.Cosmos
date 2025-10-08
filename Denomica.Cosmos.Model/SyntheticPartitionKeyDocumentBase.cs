@@ -13,7 +13,7 @@ namespace Denomica.Cosmos.Model
     /// <remarks>
     /// For details on the synthetic partition key pattern, see https://learn.microsoft.com/azure/cosmos-db/nosql/synthetic-partition-keys
     /// </remarks>
-    public class SyntheticPartitionKeyDocument : TimestampedDocumentBase
+    public class SyntheticPartitionKeyDocumentBase : TimestampedDocumentBase
     {
 
         /// <summary>

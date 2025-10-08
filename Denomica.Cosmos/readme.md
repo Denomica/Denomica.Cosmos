@@ -2,11 +2,11 @@
 
 A library that facilitates working with data in Azure Cosmos DB.
 
-> This library is the successor to the [Denomica.Cosmos.Extensions](https://www.nuget.org/packages/Denomica.Cosmos.Extensions/) library.
+> This library is the successor to the [`Denomica.Cosmos.Extensions`](https://www.nuget.org/packages/Denomica.Cosmos.Extensions/) library.
 
 ## Main Features
 
-This library build on the Azure Cosmos DB SDK ([Microsoft.Azure.Cosmos](https://www.nuget.org/packages/Microsoft.Azure.Cosmos)) and provides the following main features.
+This library build on the Azure Cosmos DB SDK ([`Microsoft.Azure.Cosmos`](https://www.nuget.org/packages/Microsoft.Azure.Cosmos)) and provides the following main features.
 
 1. Introduces the `ContainerAdapter` class, which provides additional ways for working with data in a Cosmos DB container.
 	- Handles the Cosmos DB feed iterator and returns results in batches with support for retrieving the following batch.

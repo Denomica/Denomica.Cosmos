@@ -8,7 +8,7 @@ namespace Denomica.Cosmos.SchemaOrg.Model
     /// <summary>
     /// An envelope for a Schema.org object stored in a Cosmos DB container.
     /// </summary>
-    public class SchemaOrgObject : SyntheticPartitionKeyDocument
+    public class SchemaOrgObject : SyntheticPartitionKeyDocumentBase
     {
         /// <summary>
         /// The Schema.org type of the object.
