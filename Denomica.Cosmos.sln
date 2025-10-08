@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Denomica.Cosmos.SchemaOrg",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Denomica.Cosmos.Tests", "Denomica.Cosmos.Tests\Denomica.Cosmos.Tests.csproj", "{D4E7FF85-2423-4C1D-86E0-273165722564}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Denomica.Cosmos.Odata", "Denomica.Cosmos.Odata\Denomica.Cosmos.Odata.csproj", "{C253CA77-AF8E-407E-8300-7230BAE777BA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{D4E7FF85-2423-4C1D-86E0-273165722564}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D4E7FF85-2423-4C1D-86E0-273165722564}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D4E7FF85-2423-4C1D-86E0-273165722564}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C253CA77-AF8E-407E-8300-7230BAE777BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C253CA77-AF8E-407E-8300-7230BAE777BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C253CA77-AF8E-407E-8300-7230BAE777BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C253CA77-AF8E-407E-8300-7230BAE777BA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

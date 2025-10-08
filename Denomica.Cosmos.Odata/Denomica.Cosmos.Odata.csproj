@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<Nullable>enable</Nullable>
+		<Title>Denomica.Cosmos.Odata</Title>
+		<Version>1.0.0-beta.1</Version>
+		<Authors>MikaBerglund</Authors>
+		<Company>Denomica Oy</Company>
+		<Description>A library that exposes functionality for converting OData parameters into a QueryDefinition object for Cosmos DB.</Description>
+		<Copyright>Copyright (c) 2025 Denomica Oy</Copyright>
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/Denomica/Denomica.Cosmos</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/Denomica/Denomica.Cosmos/wiki</PackageProjectUrl>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Denomica.OData.Extensions" Version="2.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Denomica.Cosmos\Denomica.Cosmos.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="readme.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+</Project>
