@@ -18,6 +18,10 @@ This library defines a set of model classes that are designed to be stored in a 
 
 Major improvements in various versions.
 
+### v1.0.0-beta.2
+
+- A few adjustments and fixes to package documentation.
+
 ### v1.0.0-beta.1
 
 - Initial release of the Denomica.Cosmos.Model library.
