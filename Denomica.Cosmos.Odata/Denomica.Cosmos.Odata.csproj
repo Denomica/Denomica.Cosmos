@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.1</TargetFramework>
 		<Nullable>enable</Nullable>
 		<Title>Denomica.Cosmos.Odata</Title>
-		<Version>1.0.0-beta.1</Version>
+		<Version>1.0.0-beta.2</Version>
 		<Authors>MikaBerglund</Authors>
 		<Company>Denomica Oy</Company>
 		<Description>A library that exposes functionality for converting OData parameters into a QueryDefinition object for Cosmos DB.</Description>
