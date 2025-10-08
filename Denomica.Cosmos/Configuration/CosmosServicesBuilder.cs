@@ -14,14 +14,14 @@ namespace Denomica.Cosmos.Configuration
     /// <remarks>This class is used to configure and register services related to Cosmos DB within the
     /// provided <see cref="IServiceCollection"/>. It is typically used in application startup to set up Cosmos-specific
     /// dependencies.</remarks>
-    public class CosmosExtensionsBuilder
+    public class CosmosServicesBuilder
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CosmosExtensionsBuilder"/> class.
+        /// Initializes a new instance of the <see cref="CosmosServicesBuilder"/> class.
         /// </summary>
         /// <param name="services">The collection of service descriptors to configure Cosmos-related services.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <see langword="null"/>.</exception>
-        public CosmosExtensionsBuilder(IServiceCollection services)
+        public CosmosServicesBuilder(IServiceCollection services)
         {
             this.Services = services ?? throw new ArgumentNullException(nameof(services));
         }
@@ -44,8 +44,8 @@ namespace Denomica.Cosmos.Configuration
         /// the connection options required to establish the Cosmos DB connection.</remarks>
         /// <param name="configureOptions">A delegate that configures the <see cref="CosmosConnectionOptions"/> using the provided <see
         /// cref="IServiceProvider"/>.</param>
-        /// <returns>The current <see cref="CosmosExtensionsBuilder"/> instance, allowing for method chaining.</returns>
-        public CosmosExtensionsBuilder WithContainerAdapter(Action<CosmosConnectionOptions, IServiceProvider> configureOptions)
+        /// <returns>The current <see cref="CosmosServicesBuilder"/> instance, allowing for method chaining.</returns>
+        public CosmosServicesBuilder WithContainerAdapter(Action<CosmosConnectionOptions, IServiceProvider> configureOptions)
         {
             this.Services
                 .AddOptions<CosmosConnectionOptions>()
@@ -83,8 +83,8 @@ namespace Denomica.Cosmos.Configuration
         /// configurations.</remarks>
         /// <param name="configureOptions">A delegate that configures the <see cref="CosmosClientOptions"/> using the provided <see
         /// cref="IServiceProvider"/>.</param>
-        /// <returns>The current <see cref="CosmosExtensionsBuilder"/> instance, allowing for method chaining.</returns>
-        public CosmosExtensionsBuilder WithCosmosClientOptions(Action<CosmosClientOptions, IServiceProvider> configureOptions)
+        /// <returns>The current <see cref="CosmosServicesBuilder"/> instance, allowing for method chaining.</returns>
+        public CosmosServicesBuilder WithCosmosClientOptions(Action<CosmosClientOptions, IServiceProvider> configureOptions)
         {
             this.Services
                 .AddOptions<CosmosClientOptions>()
@@ -102,8 +102,8 @@ namespace Denomica.Cosmos.Configuration
         /// the desired configuration.</remarks>
         /// <param name="configureOptions">A delegate that configures an instance of <see cref="JsonSerializerOptions"/> using the provided <see
         /// cref="IServiceProvider"/>.</param>
-        /// <returns>The current instance of <see cref="CosmosExtensionsBuilder"/> to allow for method chaining.</returns>
-        public CosmosExtensionsBuilder WithJsonSerializationOptions(Action<JsonSerializerOptions, IServiceProvider> configureOptions)
+        /// <returns>The current instance of <see cref="CosmosServicesBuilder"/> to allow for method chaining.</returns>
+        public CosmosServicesBuilder WithJsonSerializationOptions(Action<JsonSerializerOptions, IServiceProvider> configureOptions)
         {
             this.Services
                 .AddOptions<JsonSerializerOptions>()

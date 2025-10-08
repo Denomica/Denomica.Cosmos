@@ -43,7 +43,7 @@ namespace Denomica.Cosmos.Tests
         public async Task ClearContainer()
         {
             var tasks = new List<Task>();
-            var items = Adapter.QueryItemsAsync(new QueryDefinition("select c.id,c.partition from c"));
+            var items = Adapter.EnumItemsAsync(new QueryDefinition("select c.id,c.partition from c"));
             await foreach(var item in items)
             {
                 PartitionKey partition = PartitionKey.None;
@@ -166,7 +166,7 @@ namespace Denomica.Cosmos.Tests
                     .AppendQueryText(" order by c[\"value\"] desc")
                     .Build();
 
-                var items = await Adapter.QueryItemsAsync(query).ToListAsync();
+                var items = await Adapter.EnumItemsAsync(query).ToListAsync();
                 Assert.AreEqual(itemCount, items.Count);
 
                 var prevValue = p * itemCount + 1;
@@ -212,7 +212,7 @@ namespace Denomica.Cosmos.Tests
                     .OrderBy(x => x.Index)
                     .ToQueryDefinition();
 
-                var items = await Adapter.QueryItemsAsync<Item1>(query).ToListAsync();
+                var items = await Adapter.EnumItemsAsync<Item1>(query).ToListAsync();
                 Assert.AreEqual(itemCountPerPartition, items.Count);
                 CollectionAssert.AllItemsAreUnique(new List<int>(from x in items select x.Index));
             }
@@ -258,7 +258,7 @@ namespace Denomica.Cosmos.Tests
             Assert.AreEqual(count, items.Count);
 
             var query = from x in Adapter.Container.GetItemLinqQueryable<Item1>() orderby x.Index select x;
-            await foreach(var item in Adapter.QueryItemsAsync(query))
+            await foreach(var item in Adapter.EnumItemsAsync(query))
             {
                 var firstItem = items.First();
                 items.RemoveAt(0);
@@ -288,7 +288,7 @@ namespace Denomica.Cosmos.Tests
             var query = new QueryDefinition("select * from c order by c.id");
             do
             {
-                var result = await Adapter.QueryFeedAsync<ChildItem1>(query, continuationToken, requestOptions: new QueryRequestOptions { MaxItemCount = pageItemCount });
+                var result = await Adapter.PageItemsAsync<ChildItem1>(query, continuationToken, requestOptions: new QueryRequestOptions { MaxItemCount = pageItemCount });
                 continuationToken = result.ContinuationToken;
 
                 Assert.AreEqual(pageItemCount, result.Items.Count());
@@ -316,7 +316,7 @@ namespace Denomica.Cosmos.Tests
             var results = new List<Item1>();
             var query = from x in Adapter.Container.GetItemLinqQueryable<Item1>() orderby x.Id select x;
 
-            QueryResult<Item1>? result = await Adapter.QueryFeedAsync<Item1>(query, requestOptions: new QueryRequestOptions { MaxItemCount = pageItemCount });
+            PageResult<Item1>? result = await Adapter.PageItemsAsync<Item1>(query, requestOptions: new QueryRequestOptions { MaxItemCount = pageItemCount });
             while(result?.Items?.Count() > 0)
             {
                 Assert.AreEqual(result.Items.Count(), pageItemCount);
@@ -339,7 +339,7 @@ namespace Denomica.Cosmos.Tests
             }
 
             int pageCount = 0, itemCount = 0, maxItemCount = 11;
-            var result = await Adapter.QueryFeedAsync(new QueryDefinition("select * from c"), requestOptions: new QueryRequestOptions { MaxItemCount = maxItemCount });
+            var result = await Adapter.PageItemsAsync(new QueryDefinition("select * from c"), requestOptions: new QueryRequestOptions { MaxItemCount = maxItemCount });
             while(result.HasItems)
             {
                 Assert.IsTrue(result.Items.Count() <= maxItemCount);
@@ -359,7 +359,7 @@ namespace Denomica.Cosmos.Tests
         {
             var upserted = await Adapter.UpsertItemAsync(new ContainerItem { });
 
-            var result = await Adapter.QueryFeedAsync(new QueryDefinition("select * from c"));
+            var result = await Adapter.PageItemsAsync(new QueryDefinition("select * from c"));
             Assert.AreEqual(1, result.Items.Count());
         }
 
@@ -375,7 +375,7 @@ namespace Denomica.Cosmos.Tests
             }
             await Task.WhenAll(taskList);
 
-            var items = await Adapter.QueryItemsAsync(new QueryDefinition("select * from c"), requestOptions: new QueryRequestOptions { MaxItemCount = 10 }).ToListAsync();
+            var items = await Adapter.EnumItemsAsync(new QueryDefinition("select * from c"), requestOptions: new QueryRequestOptions { MaxItemCount = 10 }).ToListAsync();
             Assert.AreEqual(count, items.Count);
         }
 
@@ -390,7 +390,7 @@ namespace Denomica.Cosmos.Tests
                 taskList.Add(Adapter.UpsertItemAsync(new ContainerItem { }));
             }
             await Task.WhenAll(taskList);
-            var items = await Adapter.QueryItemsAsync<ContainerItem>(new QueryDefinition("select * from c")).ToListAsync();
+            var items = await Adapter.EnumItemsAsync<ContainerItem>(new QueryDefinition("select * from c")).ToListAsync();
             Assert.AreEqual(count, items.Count);
         }
 
@@ -400,7 +400,7 @@ namespace Denomica.Cosmos.Tests
         {
             var result = await Adapter.UpsertItemAsync(new ChildItem1 { DisplayName = "Foo Bar", Index = 123 });
             var expected = result.Resource;
-            var items = await Adapter.QueryItemsAsync<ChildItem1>(x => x.Where(xx => xx.Id == result.Resource.Id)).ToListAsync();
+            var items = await Adapter.EnumItemsAsync<ChildItem1>(x => x.Where(xx => xx.Id == result.Resource.Id)).ToListAsync();
             Assert.AreEqual(1, items.Count);
 
             var item = items.First();
@@ -415,7 +415,7 @@ namespace Denomica.Cosmos.Tests
         public async Task Query12()
         {
             var result = await Adapter.UpsertItemAsync(new ContainerItem());
-            var items = await Adapter.QueryItemsAsync<ContainerItem>(x => x.Where(xx => xx.Id == result.Resource.Id)).ToListAsync();
+            var items = await Adapter.EnumItemsAsync<ContainerItem>(x => x.Where(xx => xx.Id == result.Resource.Id)).ToListAsync();
             Assert.AreEqual(1, items.Count);
 
             var item = items.First();
@@ -431,7 +431,7 @@ namespace Denomica.Cosmos.Tests
         {
             var response = await Adapter.UpsertItemAsync(new { Id = Guid.NewGuid() });
             var query = new QueryDefinition("select count(1) from c");
-            var result = await Adapter.QueryItemsAsync<Dictionary<string, JsonElement>>(query).ToListAsync();
+            var result = await Adapter.EnumItemsAsync<Dictionary<string, JsonElement>>(query).ToListAsync();
             Assert.AreEqual(1, result.Count);
             var count = result.First()["$1"];
             Assert.AreEqual(1, count.GetInt32());

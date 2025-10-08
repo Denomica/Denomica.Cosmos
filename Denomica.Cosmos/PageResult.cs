@@ -8,25 +8,24 @@ using Microsoft.Azure.Cosmos;
 namespace Denomica.Cosmos
 {
     /// <summary>
-    /// Represents the result of a query operation, including the items retrieved, continuation token, and request
+    /// Represents the result of a paged query operation, including the items retrieved, continuation token, and request
     /// charge.
     /// </summary>
     /// <remarks>
-    /// The <see cref="QueryResult{T}"/> class provides access to the items produced by a query, as
-    /// well as metadata such as the continuation token for retrieving additional results and the request charge for the
-    /// operation. Use the <see cref="GetNextResultAsync"/> method to retrieve the next set of results if a continuation
-    /// token is available.
+    /// The <see cref="PageResult{T}"/> class provides access to the items produced by a query, as well as metadata such as 
+    /// the continuation token for retrieving additional results and the request charge for the operation. Use the 
+    /// <see cref="GetNextResultAsync"/> method to retrieve the next set of results if a continuation token is available.
     /// </remarks>
     /// <typeparam name="T">
-    /// The type of the items returned by the query. Must be a reference type.
+    /// The type of the items returned by the query.
     /// </typeparam>
-    public class QueryResult<T>
+    public class PageResult<T>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="QueryResult{T}"/> class with the specified container, query
+        /// Initializes a new instance of the <see cref="PageResult{T}"/> class with the specified container, query
         /// definition, query options, and optional return type.
         /// </summary>
-        /// <param name="adapter">The <see cref="ContainerAdapter"/> responsible for producing the <see cref="QueryResult{T}"/></param>
+        /// <param name="adapter">The <see cref="ContainerAdapter"/> responsible for producing the <see cref="PageResult{T}"/></param>
         /// <param name="query">The query definition that specifies the query to be executed. Cannot be <see langword="null"/>.</param>
         /// <param name="returnAs">The optional type to which the query results will be cast. If <see langword="null"/>, the default type is
         /// used.</param>
@@ -34,7 +33,7 @@ namespace Denomica.Cosmos
         /// <exception cref="ArgumentNullException">
         /// The exception that is thrown when required parameters are <see langword="null"/>.
         /// </exception>
-        internal QueryResult(ContainerAdapter adapter, QueryDefinition query, Type? returnAs = null, QueryRequestOptions? requestOptions = null)
+        internal PageResult(ContainerAdapter adapter, QueryDefinition query, Type? returnAs = null, QueryRequestOptions? requestOptions = null)
         {
             this.Adapter = adapter ?? throw new ArgumentNullException(nameof(adapter));
             this.Query = query ?? throw new ArgumentNullException(nameof(query));
@@ -75,18 +74,18 @@ namespace Denomica.Cosmos
         /// <summary>
         /// Returns the next set of results. If there are no more results, the method returns an empty result set.
         /// </summary>
-        public async Task<QueryResult<T>> GetNextResultAsync()
+        public async Task<PageResult<T>> GetNextResultAsync()
         {
             if(null != this.ContinuationToken)
             {
-                return await this.Adapter.QueryFeedAsync<T>(
+                return await this.Adapter.PageItemsAsync<T>(
                     this.Query, 
                     this.ContinuationToken,
                     returnAs: this.ReturnAs, 
                     requestOptions: this.RequestOptions);
             }
 
-            return new QueryResult<T>(this.Adapter, this.Query) { StatusCode = System.Net.HttpStatusCode.NoContent };
+            return new PageResult<T>(this.Adapter, this.Query) { StatusCode = System.Net.HttpStatusCode.NoContent };
         }
     }
 }

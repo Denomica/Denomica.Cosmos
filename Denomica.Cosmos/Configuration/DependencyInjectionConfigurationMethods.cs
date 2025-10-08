@@ -21,14 +21,14 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> to which the Cosmos DB extension services will be added. Cannot be <see
         /// langword="null"/>.</param>
-        /// <returns>A <see cref="CosmosExtensionsBuilder"/> that can be used to configure the Cosmos DB extensions.</returns>
+        /// <returns>A <see cref="CosmosServicesBuilder"/> that can be used to configure the Cosmos DB extensions.</returns>
         /// <remarks>
         /// This method registers the necessary services for working with Cosmos DB, including default configurations for using
         /// camel case for property naming. Null values are also ignored during serialization. If you want to override these defaults,
-        /// you can call the appropriate methods on the returned <see cref="CosmosExtensionsBuilder"/> instance.
+        /// you can call the appropriate methods on the returned <see cref="CosmosServicesBuilder"/> instance.
         /// </remarks>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="services"/> is <see langword="null"/>.</exception>
-        public static CosmosExtensionsBuilder AddCosmosServices(this IServiceCollection services)
+        public static CosmosServicesBuilder AddCosmosServices(this IServiceCollection services)
         {
             if (services == null)
             {
@@ -36,7 +36,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             // Return a new builder instance with default configurations applied.
-            return new CosmosExtensionsBuilder(services)
+            return new CosmosServicesBuilder(services)
                 .WithCosmosClientOptions((options, sp) =>
                 {
                     options.SerializerOptions = new Azure.Cosmos.CosmosSerializationOptions

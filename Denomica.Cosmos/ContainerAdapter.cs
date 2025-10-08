@@ -142,6 +142,15 @@ namespace Denomica.Cosmos
         /// </param>
         public async Task DeleteItemAsync(string id, PartitionKey partition, bool throwIfNotfound = true)
         {
+            if (throwIfNotfound)
+            {
+                var item = await this.FirstOrDefaultAsync(id, partition);
+                if (null == item)
+                {
+                    throw new CosmosException("Specified item was fount found.", HttpStatusCode.NotFound, 0, string.Empty, 0);
+                }
+            }
+
             var response = await this.Container.DeleteItemStreamAsync(id, partition);
             response.EnsureSuccessStatusCode();
         }
@@ -172,7 +181,7 @@ namespace Denomica.Cosmos
         /// the query returns no items.</returns>
         public async Task<Dictionary<string, object?>?> FirstOrDefaultAsync(QueryDefinition query)
         {
-            var result = await this.QueryItemsAsync(query, requestOptions: new QueryRequestOptions { MaxItemCount = 1 }).ToListAsync();
+            var result = await this.EnumItemsAsync(query, requestOptions: new QueryRequestOptions { MaxItemCount = 1 }).ToListAsync();
             return result.FirstOrDefault();
         }
 
@@ -194,7 +203,7 @@ namespace Denomica.Cosmos
         /// </returns>
         public async Task<TItem?> FirstOrDefaultAsync<TItem>(QueryDefinition query, Type? returnAs = null) where TItem : class
         {
-            var result = await this.QueryItemsAsync<TItem>(query, returnAs: returnAs, requestOptions: new QueryRequestOptions { MaxItemCount = 1 }).ToListAsync();
+            var result = await this.EnumItemsAsync<TItem>(query, returnAs: returnAs, requestOptions: new QueryRequestOptions { MaxItemCount = 1 }).ToListAsync();
             return result.FirstOrDefault();
         }
 
@@ -222,7 +231,7 @@ namespace Denomica.Cosmos
         {
             var requestOptions = new QueryRequestOptions { MaxItemCount = 1 };
             var shapedQuery = queryShaper(this.Container.GetItemLinqQueryable<TItem>(requestOptions: requestOptions));
-            var result = await this.QueryItemsAsync<TItem>(x => shapedQuery, returnAs: returnAs, requestOptions: requestOptions).ToListAsync();
+            var result = await this.EnumItemsAsync<TItem>(x => shapedQuery, returnAs: returnAs, requestOptions: requestOptions).ToListAsync();
             return result.FirstOrDefault();
         }
 
@@ -245,11 +254,12 @@ namespace Denomica.Cosmos
         }
 
 
+
         /// <summary>
-        /// Executes a query against a data source and retrieves the results as a paginated feed.
+        /// Executes a query against the underlying container and retrieves a paged result set with an optional continuation token.
         /// </summary>
         /// <remarks>This method is useful for executing paginated queries against a data source. If the
-        /// query spans multiple pages,  use the continuation token from the <see cref="QueryResult{TItem}"/> to
+        /// query spans multiple pages,  use the continuation token from the <see cref="PageResult{TItem}"/> to
         /// retrieve subsequent pages.</remarks>
         /// <typeparam name="TItem">The type of the items in the query result. Must be a reference type.</typeparam>
         /// <param name="query">The query to execute, represented as an <see cref="IQueryable{T}"/>.</param>
@@ -260,18 +270,17 @@ namespace Denomica.Cosmos
         /// <param name="requestOptions">Optional settings that specify additional options for the query, such as throughput or consistency level.
         /// Pass <see langword="null"/> to use the default options.</param>
         /// <returns>A <see cref="Task{TResult}"/> representing the asynchronous operation. The task result contains a  <see
-        /// cref="QueryResult{TItem}"/> object that includes the query results and a continuation token for retrieving 
+        /// cref="PageResult{TItem}"/> object that includes the query results and a continuation token for retrieving 
         /// additional results, if available.</returns>
-        public Task<QueryResult<TItem>> QueryFeedAsync<TItem>(IQueryable<TItem> query, string? continuationToken = null, Type? returnAs = null, QueryRequestOptions? requestOptions = null)
+        public Task<PageResult<TItem>> PageItemsAsync<TItem>(IQueryable<TItem> query, string? continuationToken = null, Type? returnAs = null, QueryRequestOptions? requestOptions = null)
         {
-            return this.QueryFeedAsync<TItem>(query.ToQueryDefinition(), continuationToken, returnAs: returnAs, requestOptions: requestOptions);
+            return this.PageItemsAsync<TItem>(query.ToQueryDefinition(), continuationToken, returnAs: returnAs, requestOptions: requestOptions);
         }
 
         /// <summary>
-        /// Executes a query against the underlying Cosmos DB container, and returns the results as a feed of items with an optional
-        /// continuation token to be used to get the next set of results (feed).
+        /// Executes a query against the underlying container and retrieves a paged result set with an optional continuation token.
         /// </summary>
-        /// <typeparam name="TItem">The type of the items to be returned. Must be a reference type.</typeparam>
+        /// <typeparam name="TItem">The type of the items to be returned.</typeparam>
         /// <param name="query">The <see cref="QueryDefinition"/> that defines the query to execute.</param>
         /// <param name="continuationToken">
         /// An optional token used to continue a query from where it previously stopped. If null, the query starts from
@@ -285,15 +294,15 @@ namespace Denomica.Cosmos
         /// Optional <see cref="QueryRequestOptions"/> to configure the query execution, such as request limits or consistency levels.
         /// </param>
         /// <returns>
-        /// A <see cref="QueryResult{TItem}"/> containing the query results, including the items, continuation token, 
+        /// A <see cref="PageResult{TItem}"/> containing the query results, including the items, continuation token, 
         /// request charge, and status code.
         /// </returns>
-        public async Task<QueryResult<TItem>> QueryFeedAsync<TItem>(QueryDefinition query, string? continuationToken = null, Type? returnAs = null, QueryRequestOptions? requestOptions = null)
+        public async Task<PageResult<TItem>> PageItemsAsync<TItem>(QueryDefinition query, string? continuationToken = null, Type? returnAs = null, QueryRequestOptions? requestOptions = null)
         {
-            QueryResult<TItem> result = new QueryResult<TItem>(this, query, returnAs: returnAs, requestOptions: requestOptions);
+            PageResult<TItem> result = new PageResult<TItem>(this, query, returnAs: returnAs, requestOptions: requestOptions);
             var items = new List<TItem>();
 
-            var feedResult = await this.QueryFeedAsync(query, continuationToken: continuationToken, requestOptions: requestOptions);
+            var feedResult = await this.PageItemsAsync(query, continuationToken: continuationToken, requestOptions: requestOptions);
             result.ContinuationToken = feedResult.ContinuationToken;
             result.RequestCharge = feedResult.RequestCharge;
             result.StatusCode = feedResult.StatusCode;
@@ -322,12 +331,12 @@ namespace Denomica.Cosmos
         /// Optional <see cref="QueryRequestOptions"/> to configure the query execution, such as setting  limits on
         /// throughput or defining partition keys.
         /// </param>
-        /// <returns>A <see cref="QueryResult{T}"/> containing the query results as a collection of dictionaries,  where each
+        /// <returns>A <see cref="PageResult{T}"/> containing the query results as a collection of dictionaries,  where each
         /// dictionary represents an item with its properties as key-value pairs. The result  also includes metadata
         /// such as the continuation token, status code, and request charge.</returns>
-        public async Task<QueryResult<Dictionary<string, object?>>> QueryFeedAsync(QueryDefinition query, string? continuationToken = null, QueryRequestOptions? requestOptions = null)
+        public async Task<PageResult<Dictionary<string, object?>>> PageItemsAsync(QueryDefinition query, string? continuationToken = null, QueryRequestOptions? requestOptions = null)
         {
-            QueryResult<Dictionary<string, object?>> result = new QueryResult<Dictionary<string, object?>>(this, query, requestOptions: requestOptions);
+            PageResult<Dictionary<string, object?>> result = new PageResult<Dictionary<string, object?>>(this, query, requestOptions: requestOptions);
             var items = new List<Dictionary<string, object?>>();
             var iterator = this.Container.GetItemQueryIterator<Dictionary<string, object?>>(query, continuationToken, requestOptions: requestOptions);
             
@@ -364,10 +373,10 @@ namespace Denomica.Cosmos
         /// limits.</param>
         /// <returns>An asynchronous sequence of items that match the query criteria. The sequence is streamed, and items are
         /// retrieved lazily as the caller enumerates.</returns>
-        public async IAsyncEnumerable<TItem> QueryItemsAsync<TItem>(IQueryable<TItem> query, Type? returnAs = null, QueryRequestOptions? requestOptions = null) where TItem : class
+        public async IAsyncEnumerable<TItem> EnumItemsAsync<TItem>(IQueryable<TItem> query, Type? returnAs = null, QueryRequestOptions? requestOptions = null) where TItem : class
         {
             var queryDef = query.ToQueryDefinition<TItem>();
-            await foreach (var item in this.QueryItemsAsync<TItem>(queryDef, returnAs: returnAs, requestOptions: requestOptions))
+            await foreach (var item in this.EnumItemsAsync<TItem>(queryDef, returnAs: returnAs, requestOptions: requestOptions))
             {
                 yield return item;
             }
@@ -396,10 +405,10 @@ namespace Denomica.Cosmos
         /// Optional settings for the query request, such as consistency level or maximum item count per page.
         /// </param>
         /// <returns>An asynchronous stream of items of type <typeparamref name="TItem"/> that match the query.</returns>
-        public async IAsyncEnumerable<TItem> QueryItemsAsync<TItem>(Func<IQueryable<TItem>, IQueryable<TItem>> queryShaper, Type? returnAs = null, QueryRequestOptions? requestOptions = null) where TItem : class
+        public async IAsyncEnumerable<TItem> EnumItemsAsync<TItem>(Func<IQueryable<TItem>, IQueryable<TItem>> queryShaper, Type? returnAs = null, QueryRequestOptions? requestOptions = null) where TItem : class
         {
             var shapedQuery = queryShaper(this.Container.GetItemLinqQueryable<TItem>(requestOptions: requestOptions));
-            await foreach(var item in this.QueryItemsAsync<TItem>(shapedQuery, returnAs: returnAs, requestOptions: requestOptions))
+            await foreach(var item in this.EnumItemsAsync<TItem>(shapedQuery, returnAs: returnAs, requestOptions: requestOptions))
             {
                 yield return item;
             }
@@ -418,9 +427,9 @@ namespace Denomica.Cosmos
         /// </param>
         /// <param name="requestOptions">Optional settings for the query request, such as consistency level or partition key.</param>
         /// <returns>An asynchronous stream of items of type <typeparamref name="TItem"/> that match the query.</returns>
-        public async IAsyncEnumerable<TItem> QueryItemsAsync<TItem>(QueryDefinition query, Type? returnAs = null, QueryRequestOptions? requestOptions = null) where TItem : class
+        public async IAsyncEnumerable<TItem> EnumItemsAsync<TItem>(QueryDefinition query, Type? returnAs = null, QueryRequestOptions? requestOptions = null) where TItem : class
         {
-            await foreach (var item in this.QueryItemsAsync(query, requestOptions: requestOptions))
+            await foreach (var item in this.EnumItemsAsync(query, requestOptions: requestOptions))
             {
                 yield return this.Convert<TItem>(item, returnAs: returnAs);
             }
@@ -432,13 +441,13 @@ namespace Denomica.Cosmos
         /// <param name="query">The query to execute.</param>
         /// <param name="requestOptions">Optional query request options to customize the query execution.</param>
         /// <returns>Returns the results as an async enumerable collection.</returns>
-        public async IAsyncEnumerable<Dictionary<string, object?>> QueryItemsAsync(QueryDefinition query, QueryRequestOptions? requestOptions = null)
+        public async IAsyncEnumerable<Dictionary<string, object?>> EnumItemsAsync(QueryDefinition query, QueryRequestOptions? requestOptions = null)
         {
             string? continuationToken = null;
 
             do
             {
-                var result = await this.QueryFeedAsync(query, continuationToken: continuationToken, requestOptions: requestOptions);
+                var result = await this.PageItemsAsync(query, continuationToken: continuationToken, requestOptions: requestOptions);
                 continuationToken = result.ContinuationToken;
 
                 foreach (var item in result.Items)
