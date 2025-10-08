@@ -15,9 +15,15 @@ This library build on the Azure Cosmos DB SDK ([Microsoft.Azure.Cosmos](https://
 2. Provides the `QueryDefinitionBuilder` class that simplifies building `QueryDefinition` instances that you use to query data in Cosmos DB with.
 3. Supports Dependency Injection with the `CosmosServicesBuilder` class that faciliates adding options and services related to working with data in Cosmos DB.
 
+## Related Packages
+
+The following packages can be used together with this library to provide additional capabilities.
+
+- [`Denomica.Cosmos.Model`](https://www.nuget.org/packages/Denomica.Cosmos.Model)
+
 ## Version Highlights
 
-Major improvements in various versions of the library.
+Major improvements in various versions of this library.
 
 ### v1.0.0-beta.1
 
