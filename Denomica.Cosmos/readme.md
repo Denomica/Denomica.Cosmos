@@ -25,10 +25,6 @@ The following packages can be used together with this library to provide additio
 
 Major improvements in various versions of this library.
 
-### v1.0.0-beta.2
+### v1.0.0-beta.x
 
-- A few adjustments and fixes to package documentation.
-
-### v1.0.0-beta.1
-
-- Initial release of the `Denomica.Cosmos` library.
+Preliminary releases inteded for shaping the first stable version of the `Denomica.Cosmos` library.
