@@ -21,4 +21,4 @@ Major improvements in various versions of the library.
 
 ### v1.0.0-beta.1
 
-- Initial release of the Denomica.Cosmos library.
+- Initial release of the `Denomica.Cosmos` library.

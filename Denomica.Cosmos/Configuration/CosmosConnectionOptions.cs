@@ -5,10 +5,20 @@ using System.Text;
 namespace Denomica.Cosmos.Configuration
 {
     /// <summary>
-    /// Represents the configuration options required to establish a connection to an Azure Cosmos DB instance.
+    /// Represents the configuration options required to establish a connection to an Azure Cosmos DB account and
+    /// a database and container within that account.
     /// </summary>
-    /// <remarks>This class encapsulates the necessary details for connecting to a specific database and
-    /// container within an Azure Cosmos DB account. Use these options to configure a Cosmos DB client.</remarks>
+    /// <remarks>
+    /// <para>
+    /// This class encapsulates the necessary details for connecting to a specific database and
+    /// container within an Azure Cosmos DB account. Use these options to configure a Cosmos DB client.
+    /// </para>
+    /// <para>
+    /// This is typically used in conjunction with dependency injection to provide the necessary options using the 
+    /// <see cref="CosmosServicesBuilder.WithContainerAdapter(Action{CosmosConnectionOptions, IServiceProvider})"/>
+    /// method.
+    /// </para>
+    /// </remarks>
     public class CosmosConnectionOptions
     {
         /// <summary>

@@ -18,17 +18,22 @@ namespace Denomica.Cosmos
     /// Provides an adapter for interacting with an Azure Cosmos DB container, enabling common operations such as
     /// querying, inserting, updating, and deleting items.
     /// </summary>
-    /// <remarks>This class acts as a wrapper around the <see cref="Container"/> class, simplifying common
-    /// operations and providing additional functionality such as upsert operations and partition key handling. It is
-    /// designed to work with Azure Cosmos DB SDK and supports asynchronous operations for scalability.</remarks>
+    /// <remarks>
+    /// This class acts as a wrapper around the <see cref="Container"/> class, simplifying common
+    /// operations and providing additional functionality.
+    /// </remarks>
     public class ContainerAdapter
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ContainerAdapter"/> class with the specified dependency
-        /// container.
+        /// Initializes a new instance of the <see cref="ContainerAdapter"/>.
         /// </summary>
-        /// <param name="container">The dependency injection container used to resolve service dependencies. Cannot be <see langword="null"/>.</param>
-        /// <param name="serializationOptions">Optional JSON serialization options to customize the serialization and deserialization behavior. If not provided, default options will be used.</param>
+        /// <param name="container">
+        /// Requred. The Cosmos DB container to use in the current <see cref="ContainerAdapter"/>.
+        /// </param>
+        /// <param name="serializationOptions">
+        /// Optional. the JSON serialization options to customize the serialization and deserialization behavior. 
+        /// If not provided, default options will be used.
+        /// </param>
         public ContainerAdapter(Container container, JsonSerializerOptions? serializationOptions = null)
         {
             this.Container = container ?? throw new ArgumentNullException(nameof(container));
@@ -171,8 +176,8 @@ namespace Denomica.Cosmos
 
 
         /// <summary>
-        /// Asynchronously retrieves the first item from the query results, or <see langword="null"/> if no items are
-        /// found.
+        /// Retrieves the first item that matches the given <paramref name="query"/>, or <see langword="null"/>
+        /// if no matching item is found.
         /// </summary>
         /// <remarks>This method executes the query with a maximum item count of 1 and returns the first
         /// result, if available.</remarks>
@@ -186,7 +191,8 @@ namespace Denomica.Cosmos
         }
 
         /// <summary>
-        /// Asynchronously retrieves the first item from the query results or <see langword="null"/> if no items are found.
+        /// Retrieves the first item that matches the given <paramref name="query"/>, or <see langword="null"/>
+        /// if no matching item is found.
         /// </summary>
         /// <remarks>
         /// This method executes the query with a maximum item count of 1, ensuring that at most one item is retrieved.
@@ -198,8 +204,7 @@ namespace Denomica.Cosmos
         /// subtype of <typeparamref name="TItem"/>. If not specified, the items are returned as the type <typeparamref name="TItem"/>.
         /// </param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains the first item of type 
-        /// <typeparamref name="TItem"/> from the query results, or <see langword="null"/> if no items are found.
+        /// Returns the first item that matches the quer or <see langword="null"/> if no matching item is found.
         /// </returns>
         public async Task<TItem?> FirstOrDefaultAsync<TItem>(QueryDefinition query, Type? returnAs = null) where TItem : class
         {
@@ -208,8 +213,8 @@ namespace Denomica.Cosmos
         }
 
         /// <summary>
-        /// Asynchronously retrieves the first element of a queryable sequence, or a default value if the sequence is
-        /// empty.
+        /// Retrieves the first item that matches the query returned by <paramref name="queryShaper"/>, or 
+        /// <see langword="null"/> if no matching item is found.
         /// </summary>
         /// <remarks>This method executes the query asynchronously and retrieves only the first item, if
         /// available. The query is shaped using the provided <paramref name="queryShaper"/> function, which allows
@@ -224,8 +229,7 @@ namespace Denomica.Cosmos
         /// subtype of <typeparamref name="TItem"/>. If not specified, the items are returned as the type <typeparamref name="TItem"/>.
         /// </param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains the first element of the shaped
-        /// queryable sequence, or <see langword="null"/> if the sequence contains no elements.
+        /// Returns the first item that matches the quer or <see langword="null"/> if no matching item is found.
         /// </returns>
         public async Task<TItem?> FirstOrDefaultAsync<TItem>(Func<IQueryable<TItem>, IQueryable<TItem>> queryShaper, Type? returnAs = null) where TItem : class
         {
@@ -241,8 +245,10 @@ namespace Denomica.Cosmos
         /// </summary>
         /// <param name="id">The unique identifier of the item to retrieve.</param>
         /// <param name="partitionKey">The partition key associated with the item.</param>
-        /// <returns>A dictionary representing the item's properties if the item is found and the operation is successful;
-        /// otherwise, <see langword="null"/>.</returns>
+        /// <returns>
+        /// A dictionary representing the item's properties if the item is found and the operation is successful;
+        /// otherwise, <see langword="null"/>.
+        /// </returns>
         public async Task<Dictionary<string, object?>?> FirstOrDefaultAsync(string id, PartitionKey partitionKey)
         {
             var response = await this.Container.ReadItemAsync<Dictionary<string, object?>>(id, partitionKey);
@@ -258,9 +264,6 @@ namespace Denomica.Cosmos
         /// <summary>
         /// Executes a query against the underlying container and retrieves a paged result set with an optional continuation token.
         /// </summary>
-        /// <remarks>This method is useful for executing paginated queries against a data source. If the
-        /// query spans multiple pages,  use the continuation token from the <see cref="PageResult{TItem}"/> to
-        /// retrieve subsequent pages.</remarks>
         /// <typeparam name="TItem">The type of the items in the query result. Must be a reference type.</typeparam>
         /// <param name="query">The query to execute, represented as an <see cref="IQueryable{T}"/>.</param>
         /// <param name="continuationToken">An optional token used to retrieve the next set of results in a paginated query.  Pass <see
@@ -317,11 +320,8 @@ namespace Denomica.Cosmos
         }
 
         /// <summary>
-        /// Executes a query against the underlying Cosmos DB container, and returns the results as a feed of items with an optional
-        /// continuation token to be used to get the next set of results (feed).
+        /// Executes a query against the underlying container and retrieves a paged result set with an optional continuation token.
         /// </summary>
-        /// <remarks>This method uses the Cosmos DB SDK to execute the query and retrieve results. If the
-        /// query  spans multiple pages, the continuation token can be used to fetch subsequent pages.</remarks>
         /// <param name="query">The <see cref="QueryDefinition"/> that defines the query to execute.</param>
         /// <param name="continuationToken">
         /// An optional token used to continue a query from where it left off in a previous execution. Pass <see langword="null"/>
@@ -331,9 +331,11 @@ namespace Denomica.Cosmos
         /// Optional <see cref="QueryRequestOptions"/> to configure the query execution, such as setting  limits on
         /// throughput or defining partition keys.
         /// </param>
-        /// <returns>A <see cref="PageResult{T}"/> containing the query results as a collection of dictionaries,  where each
+        /// <returns>
+        /// A <see cref="PageResult{T}"/> containing the query results as a collection of dictionaries,  where each
         /// dictionary represents an item with its properties as key-value pairs. The result  also includes metadata
-        /// such as the continuation token, status code, and request charge.</returns>
+        /// such as the continuation token, status code, and request charge.
+        /// </returns>
         public async Task<PageResult<Dictionary<string, object?>>> PageItemsAsync(QueryDefinition query, string? continuationToken = null, QueryRequestOptions? requestOptions = null)
         {
             PageResult<Dictionary<string, object?>> result = new PageResult<Dictionary<string, object?>>(this, query, requestOptions: requestOptions);
@@ -362,17 +364,26 @@ namespace Denomica.Cosmos
         /// <summary>
         /// Executes a query against a data source and asynchronously returns the results as a sequence of items.
         /// </summary>
-        /// <remarks>This method supports asynchronous streaming using <see cref="IAsyncEnumerable{T}"/>.
-        /// It is suitable for scenarios where large result sets need to be processed incrementally.</remarks>
+        /// <remarks>
+        /// This method supports asynchronous enumeration using <see cref="IAsyncEnumerable{T}"/>. It allows you
+        /// to enumerate through all items that match the given <paramref name="query"/>.
+        /// </remarks>
         /// <typeparam name="TItem">The type of the items to be returned. Must be a reference type.</typeparam>
-        /// <param name="query">The query to execute, represented as an <see cref="IQueryable{T}"/>. This defines the criteria for
-        /// retrieving items.</param>
-        /// <param name="returnAs">An optional <see cref="Type"/> specifying the type to which the results should be cast. If null, the results
-        /// are returned as <typeparamref name="TItem"/>.</param>
-        /// <param name="requestOptions">Optional settings that specify additional options for the query, such as consistency level or request
-        /// limits.</param>
-        /// <returns>An asynchronous sequence of items that match the query criteria. The sequence is streamed, and items are
-        /// retrieved lazily as the caller enumerates.</returns>
+        /// <param name="query">
+        /// The query to execute, represented as an <see cref="IQueryable{T}"/>. This defines the criteria for
+        /// retrieving items.
+        /// </param>
+        /// <param name="returnAs">
+        /// An optional <see cref="Type"/> specifying the type to which the query results should be converted. If specified, the type
+        /// must be a subtype of <typeparamref name="TItem"/>. If not specified, the results are returned as <typeparamref name="TItem"/>.
+        /// </param>
+        /// <param name="requestOptions">
+        /// Optional settings that specify additional options for the query, such as consistency level or request limits.
+        /// </param>
+        /// <returns>
+        /// An asynchronous sequence of items that match the query criteria. The sequence is streamed, and items are
+        /// retrieved lazily as the caller enumerates.
+        /// </returns>
         public async IAsyncEnumerable<TItem> EnumItemsAsync<TItem>(IQueryable<TItem> query, Type? returnAs = null, QueryRequestOptions? requestOptions = null) where TItem : class
         {
             var queryDef = query.ToQueryDefinition<TItem>();
@@ -383,13 +394,8 @@ namespace Denomica.Cosmos
         }
 
         /// <summary>
-        /// Asynchronously queries items from the container using the specified query shaping function.
+        /// Asynchronously queries items from the container using the query returned by <paramref name="queryShaper"/>.
         /// </summary>
-        /// <remarks>
-        /// This method uses asynchronous streaming to retrieve items, making it suitable for processing
-        /// large datasets without loading all items into memory at once. The query is shaped using the
-        /// <paramref name="queryShaper"/> function, which allows for flexible filtering and projection.
-        /// </remarks>
         /// <typeparam name="TItem">
         /// The type of the items to query.
         /// </typeparam>
@@ -404,7 +410,10 @@ namespace Denomica.Cosmos
         /// <param name="requestOptions">
         /// Optional settings for the query request, such as consistency level or maximum item count per page.
         /// </param>
-        /// <returns>An asynchronous stream of items of type <typeparamref name="TItem"/> that match the query.</returns>
+        /// <returns>
+        /// Returns <see cref="IAsyncEnumerable{T}"/> that allows you to asynchronously enumerate through the items that match
+        /// the query returned by <paramref name="queryShaper"/>.
+        /// </returns>
         public async IAsyncEnumerable<TItem> EnumItemsAsync<TItem>(Func<IQueryable<TItem>, IQueryable<TItem>> queryShaper, Type? returnAs = null, QueryRequestOptions? requestOptions = null) where TItem : class
         {
             var shapedQuery = queryShaper(this.Container.GetItemLinqQueryable<TItem>(requestOptions: requestOptions));
@@ -415,10 +424,8 @@ namespace Denomica.Cosmos
         }
 
         /// <summary>
-        /// Executes a query against the data source and returns the results as an asynchronous stream of items.
+        /// Executes a <paramref name="query"/> against the underlying container and returns the results as an asynchronous stream of items.
         /// </summary>
-        /// <remarks>This method uses asynchronous streaming to retrieve query results, which allows
-        /// processing large result sets efficiently without loading all items into memory at once.</remarks>
         /// <typeparam name="TItem">The type of the items to return. Must be a reference type.</typeparam>
         /// <param name="query">The <see cref="QueryDefinition"/> that defines the query to execute.</param>
         /// <param name="returnAs">
@@ -436,11 +443,15 @@ namespace Denomica.Cosmos
         }
 
         /// <summary>
-        /// Queries the underlying <see cref="Container"/> for items.
+        /// Queries the underlying <see cref="Container"/> for items that match <paramref name="query"/>.
         /// </summary>
         /// <param name="query">The query to execute.</param>
-        /// <param name="requestOptions">Optional query request options to customize the query execution.</param>
-        /// <returns>Returns the results as an async enumerable collection.</returns>
+        /// <param name="requestOptions">
+        /// Optional query request options to customize the query execution.
+        /// </param>
+        /// <returns>
+        /// Returns the results as an async enumerable collection.
+        /// </returns>
         public async IAsyncEnumerable<Dictionary<string, object?>> EnumItemsAsync(QueryDefinition query, QueryRequestOptions? requestOptions = null)
         {
             string? continuationToken = null;
@@ -464,32 +475,38 @@ namespace Denomica.Cosmos
         /// <summary>
         /// Inserts or updates an item in the database container.
         /// </summary>
-        /// <remarks>This method performs an "upsert" operation, which means it will insert the item if it
-        /// does not already exist  or update it if it does. The operation is performed within the context of the
-        /// specified partition key.</remarks>
+        /// <remarks>
+        /// This method performs an "upsert" operation, which means it will insert the item if it
+        /// does not already exist  or update it if it does.
+        /// </remarks>
         /// <param name="item">The item to be inserted or updated. The item must be a JSON-serializable object.</param>
         /// <param name="partitionKey">The partition key associated with the item. If <see langword="null"/>, the partition key will be inferred 
         /// from the item's properties if possible.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the response from the database, 
-        /// including the inserted or updated item and metadata about the operation.</returns>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the response from the database, 
+        /// including the inserted or updated item and metadata about the operation.
+        /// </returns>
         public Task<ItemResponse<object>> UpsertItemAsync(object item, PartitionKey? partitionKey = null)
         {
             return this.UpsertItemAsync<object>(item, partitionKey);
         }
 
         /// <summary>
-        /// Inserts or updates an item in the Azure Cosmos DB container.
+        /// Inserts or updates an item in the underlying Azure Cosmos DB container.
         /// </summary>
-        /// <remarks>This method performs an upsert operation, which inserts the item if it does not exist
-        /// or updates it if it already exists. The operation is performed within the specified partition key, if
-        /// provided.</remarks>
+        /// <remarks>
+        /// This method performs an upsert operation, which inserts the item if it does not exist
+        /// or updates it if it already exists.
+        /// </remarks>
         /// <typeparam name="TItem">The type of the item to be upserted. Must be a reference type.</typeparam>
         /// <param name="item">The item to be inserted or updated. Cannot be <see langword="null"/>.</param>
         /// <param name="partitionKey">The partition key associated with the item. If <see langword="null"/>, the default partition key will be
         /// used.</param>
         /// <param name="requestOptions">Optional. The options for the item request.</param>
-        /// <returns>A <see cref="ItemResponse{T}"/> containing the result of the upsert operation, including the item and
-        /// metadata such as the status code and request charge.</returns>
+        /// <returns>
+        /// A <see cref="ItemResponse{T}"/> containing the result of the upsert operation, including the item and
+        /// metadata such as the status code and request charge.
+        /// </returns>
         /// <exception cref="CosmosException">Thrown if the upsert operation fails with a non-success status code (outside the range 200-299).</exception>
         public async Task<ItemResponse<TItem>> UpsertItemAsync<TItem>(TItem item, PartitionKey? partitionKey = null, ItemRequestOptions? requestOptions = null) where TItem : class
         {

@@ -322,7 +322,7 @@ namespace Denomica.Cosmos.Tests
                 Assert.AreEqual(result.Items.Count(), pageItemCount);
                 Assert.IsFalse(result.Items.Any(x => results.Any(y => y.Id == x.Id)), "Results must not include previously returned results.");
                 results.AddRange(result.Items);
-                result = await result.GetNextResultAsync();
+                result = await result.GetNextPageAsync();
             }
 
             CollectionAssert.AreEqual(source, results);
@@ -346,7 +346,7 @@ namespace Denomica.Cosmos.Tests
 
                 pageCount++;
                 itemCount += result.Items.Count();
-                result = await result.GetNextResultAsync();
+                result = await result.GetNextPageAsync();
             }
 
             Assert.AreEqual(6, pageCount);

@@ -14,7 +14,7 @@ namespace Denomica.Cosmos
     /// <remarks>
     /// The <see cref="PageResult{T}"/> class provides access to the items produced by a query, as well as metadata such as 
     /// the continuation token for retrieving additional results and the request charge for the operation. Use the 
-    /// <see cref="GetNextResultAsync"/> method to retrieve the next set of results if a continuation token is available.
+    /// <see cref="GetNextPageAsync"/> method to retrieve the next set of results if a continuation token is available.
     /// </remarks>
     /// <typeparam name="T">
     /// The type of the items returned by the query.
@@ -72,9 +72,13 @@ namespace Denomica.Cosmos
         public System.Net.HttpStatusCode StatusCode { get; internal set; }
 
         /// <summary>
-        /// Returns the next set of results. If there are no more results, the method returns an empty result set.
+        /// Returns the next page of result set. If there are no more results, the method returns an empty result set.
         /// </summary>
-        public async Task<PageResult<T>> GetNextResultAsync()
+        /// <remarks>
+        /// This method returns an empty result set if the <see cref="ContinuationToken"/> is <see langword="null"/>, 
+        /// indicating that there are no more results to retrieve.
+        /// </remarks>
+        public async Task<PageResult<T>> GetNextPageAsync()
         {
             if(null != this.ContinuationToken)
             {

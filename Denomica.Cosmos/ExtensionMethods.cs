@@ -11,7 +11,7 @@ namespace Denomica.Cosmos
     public static class ExtensionMethods
     {
         /// <summary>
-        /// Converts an <see cref="IAsyncEnumerable{T}"/> to a list asynchronously.
+        /// Asynchronously enumerates through the source and returns the resulting items as a <see cref="IList{T}"/> collection.
         /// </summary>
         /// <typeparam name="T">The type of the elements in the source sequence.</typeparam>
         /// <param name="source">The asynchronous sequence to convert. Cannot be <see langword="null"/>.</param>
