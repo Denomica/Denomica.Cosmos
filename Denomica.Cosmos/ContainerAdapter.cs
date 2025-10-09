@@ -206,7 +206,7 @@ namespace Denomica.Cosmos
         /// <returns>
         /// Returns the first item that matches the quer or <see langword="null"/> if no matching item is found.
         /// </returns>
-        public async Task<TItem?> FirstOrDefaultAsync<TItem>(QueryDefinition query, Type? returnAs = null) where TItem : class
+        public async Task<TItem> FirstOrDefaultAsync<TItem>(QueryDefinition query, Type? returnAs = null)
         {
             var result = await this.EnumItemsAsync<TItem>(query, returnAs: returnAs, requestOptions: new QueryRequestOptions { MaxItemCount = 1 }).ToListAsync();
             return result.FirstOrDefault();
@@ -231,7 +231,7 @@ namespace Denomica.Cosmos
         /// <returns>
         /// Returns the first item that matches the quer or <see langword="null"/> if no matching item is found.
         /// </returns>
-        public async Task<TItem?> FirstOrDefaultAsync<TItem>(Func<IQueryable<TItem>, IQueryable<TItem>> queryShaper, Type? returnAs = null) where TItem : class
+        public async Task<TItem> FirstOrDefaultAsync<TItem>(Func<IQueryable<TItem>, IQueryable<TItem>> queryShaper, Type? returnAs = null)
         {
             var requestOptions = new QueryRequestOptions { MaxItemCount = 1 };
             var shapedQuery = queryShaper(this.Container.GetItemLinqQueryable<TItem>(requestOptions: requestOptions));
@@ -384,7 +384,7 @@ namespace Denomica.Cosmos
         /// An asynchronous sequence of items that match the query criteria. The sequence is streamed, and items are
         /// retrieved lazily as the caller enumerates.
         /// </returns>
-        public async IAsyncEnumerable<TItem> EnumItemsAsync<TItem>(IQueryable<TItem> query, Type? returnAs = null, QueryRequestOptions? requestOptions = null) where TItem : class
+        public async IAsyncEnumerable<TItem> EnumItemsAsync<TItem>(IQueryable<TItem> query, Type? returnAs = null, QueryRequestOptions? requestOptions = null)
         {
             var queryDef = query.ToQueryDefinition<TItem>();
             await foreach (var item in this.EnumItemsAsync<TItem>(queryDef, returnAs: returnAs, requestOptions: requestOptions))
@@ -414,7 +414,7 @@ namespace Denomica.Cosmos
         /// Returns <see cref="IAsyncEnumerable{T}"/> that allows you to asynchronously enumerate through the items that match
         /// the query returned by <paramref name="queryShaper"/>.
         /// </returns>
-        public async IAsyncEnumerable<TItem> EnumItemsAsync<TItem>(Func<IQueryable<TItem>, IQueryable<TItem>> queryShaper, Type? returnAs = null, QueryRequestOptions? requestOptions = null) where TItem : class
+        public async IAsyncEnumerable<TItem> EnumItemsAsync<TItem>(Func<IQueryable<TItem>, IQueryable<TItem>> queryShaper, Type? returnAs = null, QueryRequestOptions? requestOptions = null)
         {
             var shapedQuery = queryShaper(this.Container.GetItemLinqQueryable<TItem>(requestOptions: requestOptions));
             await foreach(var item in this.EnumItemsAsync<TItem>(shapedQuery, returnAs: returnAs, requestOptions: requestOptions))
@@ -434,7 +434,7 @@ namespace Denomica.Cosmos
         /// </param>
         /// <param name="requestOptions">Optional settings for the query request, such as consistency level or partition key.</param>
         /// <returns>An asynchronous stream of items of type <typeparamref name="TItem"/> that match the query.</returns>
-        public async IAsyncEnumerable<TItem> EnumItemsAsync<TItem>(QueryDefinition query, Type? returnAs = null, QueryRequestOptions? requestOptions = null) where TItem : class
+        public async IAsyncEnumerable<TItem> EnumItemsAsync<TItem>(QueryDefinition query, Type? returnAs = null, QueryRequestOptions? requestOptions = null)
         {
             await foreach (var item in this.EnumItemsAsync(query, requestOptions: requestOptions))
             {
@@ -508,7 +508,7 @@ namespace Denomica.Cosmos
         /// metadata such as the status code and request charge.
         /// </returns>
         /// <exception cref="CosmosException">Thrown if the upsert operation fails with a non-success status code (outside the range 200-299).</exception>
-        public async Task<ItemResponse<TItem>> UpsertItemAsync<TItem>(TItem item, PartitionKey? partitionKey = null, ItemRequestOptions? requestOptions = null) where TItem : class
+        public async Task<ItemResponse<TItem>> UpsertItemAsync<TItem>(TItem item, PartitionKey? partitionKey = null, ItemRequestOptions? requestOptions = null)
         {
             ItemResponse<TItem> response = null!;
 
