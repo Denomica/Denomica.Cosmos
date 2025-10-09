@@ -20,6 +20,7 @@ This library build on the Azure Cosmos DB SDK ([`Microsoft.Azure.Cosmos`](https:
 The following packages can be used together with this library to provide additional capabilities.
 
 - [`Denomica.Cosmos.Model`](https://www.nuget.org/packages/Denomica.Cosmos.Model)
+- [`Denomica.Cosmos.Odata`](https://www.nuget.org/packages/Denomica.Cosmos.Odata)
 
 ## Version Highlights
 
