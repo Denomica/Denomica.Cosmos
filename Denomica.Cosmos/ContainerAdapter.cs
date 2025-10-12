@@ -510,30 +510,15 @@ namespace Denomica.Cosmos
         /// <exception cref="CosmosException">Thrown if the upsert operation fails with a non-success status code (outside the range 200-299).</exception>
         public async Task<ItemResponse<TItem>> UpsertItemAsync<TItem>(TItem item, PartitionKey? partitionKey = null, ItemRequestOptions? requestOptions = null)
         {
-            ItemResponse<TItem> response = null!;
-
-            response = await this.Container.UpsertItemAsync<TItem>(item, partitionKey: partitionKey, requestOptions: requestOptions);
-            if ((int)response.StatusCode < 200 || (int)response.StatusCode >= 300)
+            var upserted = await this.Container.UpsertItemAsync<object>(item, partitionKey: partitionKey, requestOptions: requestOptions);
+            if ((int)upserted.StatusCode < 200 || (int)upserted.StatusCode >= 300)
             {
-                throw new CosmosException($"Upsert operation failed with status code {response.StatusCode}.", response.StatusCode, (int)response.StatusCode, response.ActivityId, response.RequestCharge);
+                throw new CosmosException($"Upsert operation failed with status code {upserted.StatusCode}.", upserted.StatusCode, (int)upserted.StatusCode, upserted.ActivityId, upserted.RequestCharge);
             }
 
-            if (item.GetType() != typeof(TItem) && null != partitionKey)
-            {
-                // If the item is not exactly the type specified in TItem, it means that it is a subtype.
-                // In that case, we need to retrieve the item from the container, because we might not
-                // have the full updated item in the response from the Upsert method call, becaue the
-                // item is a subtype of TItem.
-                var sourceItem = JsonUtil.CreateDictionary(item);
-                if(sourceItem.TryGetValue("id", out var idObj) && idObj is string id && id.Length > 0)
-                {
-                    var dictionary = await this.FirstOrDefaultAsync(id, partitionKey.Value);
-                    if(null != dictionary)
-                    {
-                        response = new UpsertItemResponse<TItem>(response, this.Convert<TItem>(dictionary, returnAs: item.GetType()));
-                    }
-                }
-            }
+            var dictionary = JsonUtil.CreateDictionary(upserted.Resource);
+            var upsertedItem = this.Convert<TItem>(dictionary, returnAs: item.GetType());
+            ItemResponse<TItem> response = new UpsertItemResponse<TItem>(upsertedItem, upserted.Headers, upserted.StatusCode);
 
             return response;
         }

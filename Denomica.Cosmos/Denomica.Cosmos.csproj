@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.1</TargetFramework>
 		<Nullable>enable</Nullable>
-		<Version>1.0.0-beta.4</Version>
+		<Version>1.0.0-beta.5</Version>
 		<Company>Denomica Oy</Company>
 		<Authors>MikaBerglund</Authors>
 		<Description>Utilities that facilitate working with data in Azure Cosmos DB.</Description>

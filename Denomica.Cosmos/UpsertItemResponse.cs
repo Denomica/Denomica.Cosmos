@@ -8,11 +8,15 @@ namespace Denomica.Cosmos
 {
     internal class UpsertItemResponse<T> : ItemResponse<T>
     {
-        internal UpsertItemResponse(ItemResponse<T> sourceResponse, T resource)
+        internal UpsertItemResponse(ItemResponse<T> sourceResponse, T resource) : this(resource ?? sourceResponse.Resource, sourceResponse.Headers, sourceResponse.StatusCode)
         {
-            _Headers = sourceResponse.Headers;
-            _Resource = resource ?? sourceResponse.Resource;
-            _StatusCode = sourceResponse.StatusCode;
+        }
+
+        internal UpsertItemResponse(T resource, Headers headers, HttpStatusCode statusCode)
+        {
+            _Headers = headers;
+            _Resource = resource;
+            _StatusCode = statusCode;
         }
 
         private Headers _Headers;

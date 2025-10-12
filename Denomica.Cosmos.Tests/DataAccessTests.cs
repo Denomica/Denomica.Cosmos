@@ -467,6 +467,17 @@ namespace Denomica.Cosmos.Tests
             Assert.AreEqual(displayName, item2.DisplayName);
         }
 
+        [TestMethod]
+        [Description("Upsert an item as a parent type without a partition key, and expect that the item will be returned as the actual type.")]
+        public async Task Upsert03()
+        {
+            var name = "Foo Bar";
+            Item1 item = new ChildItem1 { DisplayName = name };
+            var upserted = await Adapter.UpsertItemAsync(item);
+            var item2 = upserted.Resource as ChildItem1;
+
+            Assert.IsNotNull(item2);
+        }
 
 
         private async Task<int> GetContainerCountAsync()
