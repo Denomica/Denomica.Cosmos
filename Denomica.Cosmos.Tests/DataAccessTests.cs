@@ -423,6 +423,39 @@ namespace Denomica.Cosmos.Tests
             Assert.AreEqual(result.Resource.Partition, item.Partition);
         }
 
+        [TestMethod]
+        [Description("Stores an entity in the database with a null value on a field, and tries to query for that item with that null value.")]
+        public async Task Query13()
+        {
+            var item = await Adapter.UpsertItemAsync(new ChildItem1
+            { 
+                DisplayName = null, 
+                Index = 1 
+            });
+
+            var items = await Adapter.EnumItemsAsync<ChildItem1>(x => x.Where(xx => xx.DisplayName == null)).ToListAsync();
+            Assert.AreEqual(1, items.Count);
+            Assert.AreEqual(item.Resource.Id, items.First().Id);
+        }
+
+        [TestMethod]
+        [Description("Ensures that null values are stored in the database with the default settings.")]
+        public async Task Query14()
+        {
+            var item = await Adapter.UpsertItemAsync(new ChildItem1
+            {
+                DisplayName = null
+            });
+
+            var query = new QueryDefinitionBuilder()
+                .AppendQueryText("select * from c where c.displayName = null")
+                .Build()
+                ;
+
+            var firstItem = await Adapter.FirstOrDefaultAsync<ChildItem1>(query);
+            Assert.IsNotNull(firstItem);
+            Assert.AreEqual(item.Resource.Id, firstItem.Id);
+        }
 
 
         [TestMethod]

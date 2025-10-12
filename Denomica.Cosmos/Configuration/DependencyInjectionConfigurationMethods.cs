@@ -42,7 +42,9 @@ namespace Microsoft.Extensions.DependencyInjection
                     options.SerializerOptions = new Azure.Cosmos.CosmosSerializationOptions
                     {
                         PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase,
-                        IgnoreNullValues = true
+
+                        // This must be set to false to match behaviour in Denomica.Cosmos.Extensions, which this library replaces.
+                        IgnoreNullValues = false
                     };
                 })
                 .WithJsonSerializationOptions((options, sp) =>
