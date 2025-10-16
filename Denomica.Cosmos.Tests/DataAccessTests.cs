@@ -457,6 +457,24 @@ namespace Denomica.Cosmos.Tests
             Assert.AreEqual(item.Resource.Id, firstItem.Id);
         }
 
+        [TestMethod]
+        [Description("Ensures that a query that returns only a value, not an object, can be successfully executed using the ContainerAdapter.")]
+        public async Task Query15()
+        {
+            var item = await Adapter.UpsertItemAsync(new Item1());
+
+            Assert.IsTrue(item.Resource.Id?.Length > 0);
+
+            var query = new QueryDefinitionBuilder()
+                .AppendQueryText("select value c.id from c")
+                .Build();
+
+            var idList = await Adapter.EnumItemsAsync<string>(query).ToListAsync();
+            Assert.AreEqual(1, idList.Count);
+            Assert.AreEqual(item.Resource.Id, idList.First());
+        }
+
+
 
         [TestMethod]
         [Description("Inserts one item and checks the item count.")]

@@ -11,9 +11,12 @@ using Denomica.Text.Json;
 using System.IO;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
+using Newtonsoft.Json.Linq;
 
 namespace Denomica.Cosmos
 {
+    using JsonDictionary = Dictionary<string, object?>;
+
     /// <summary>
     /// Provides an adapter for interacting with an Azure Cosmos DB container, enabling common operations such as
     /// querying, inserting, updating, and deleting items.
@@ -184,7 +187,7 @@ namespace Denomica.Cosmos
         /// <param name="query">The <see cref="QueryDefinition"/> that defines the query to execute.</param>
         /// <returns>A <see cref="JsonElement"/> representing the first item in the query results, or <see langword="null"/> if
         /// the query returns no items.</returns>
-        public async Task<Dictionary<string, object?>?> FirstOrDefaultAsync(QueryDefinition query)
+        public async Task<JsonDictionary?> FirstOrDefaultAsync(QueryDefinition query)
         {
             var result = await this.EnumItemsAsync(query, requestOptions: new QueryRequestOptions { MaxItemCount = 1 }).ToListAsync();
             return result.FirstOrDefault();
@@ -249,9 +252,9 @@ namespace Denomica.Cosmos
         /// A dictionary representing the item's properties if the item is found and the operation is successful;
         /// otherwise, <see langword="null"/>.
         /// </returns>
-        public async Task<Dictionary<string, object?>?> FirstOrDefaultAsync(string id, PartitionKey partitionKey)
+        public async Task<JsonDictionary?> FirstOrDefaultAsync(string id, PartitionKey partitionKey)
         {
-            var response = await this.Container.ReadItemAsync<Dictionary<string, object?>>(id, partitionKey);
+            var response = await this.Container.ReadItemAsync<JsonDictionary>(id, partitionKey);
             if(response.StatusCode == HttpStatusCode.OK)
             {
                 return response.Resource;
@@ -302,20 +305,8 @@ namespace Denomica.Cosmos
         /// </returns>
         public async Task<PageResult<TItem>> PageItemsAsync<TItem>(QueryDefinition query, string? continuationToken = null, Type? returnAs = null, QueryRequestOptions? requestOptions = null)
         {
-            PageResult<TItem> result = new PageResult<TItem>(this, query, returnAs: returnAs, requestOptions: requestOptions);
-            var items = new List<TItem>();
+            PageResult<TItem> result = await this.PageObjectsAsync<TItem>(query, continuationToken: continuationToken, returnAs: returnAs, requestOptions: requestOptions);
 
-            var feedResult = await this.PageItemsAsync(query, continuationToken: continuationToken, requestOptions: requestOptions);
-            result.ContinuationToken = feedResult.ContinuationToken;
-            result.RequestCharge = feedResult.RequestCharge;
-            result.StatusCode = feedResult.StatusCode;
-
-            foreach(var item in feedResult.Items)
-            {
-                items.Add(this.Convert<TItem>(item, returnAs: returnAs));
-            }
-
-            result.Items = items;
             return result;
         }
 
@@ -336,26 +327,9 @@ namespace Denomica.Cosmos
         /// dictionary represents an item with its properties as key-value pairs. The result  also includes metadata
         /// such as the continuation token, status code, and request charge.
         /// </returns>
-        public async Task<PageResult<Dictionary<string, object?>>> PageItemsAsync(QueryDefinition query, string? continuationToken = null, QueryRequestOptions? requestOptions = null)
+        public async Task<PageResult<JsonDictionary>> PageItemsAsync(QueryDefinition query, string? continuationToken = null, QueryRequestOptions? requestOptions = null)
         {
-            PageResult<Dictionary<string, object?>> result = new PageResult<Dictionary<string, object?>>(this, query, requestOptions: requestOptions);
-            var items = new List<Dictionary<string, object?>>();
-            var iterator = this.Container.GetItemQueryIterator<Dictionary<string, object?>>(query, continuationToken, requestOptions: requestOptions);
-            
-            if (iterator.HasMoreResults)
-            {
-                var response = await iterator.ReadNextAsync();
-                
-                result.ContinuationToken = response.ContinuationToken;
-                result.StatusCode = response.StatusCode;
-                result.RequestCharge = response.RequestCharge;
-
-                foreach (var item in response)
-                {
-                    items.Add(item);
-                }
-                result.Items = items;
-            }
+            PageResult<JsonDictionary> result = await this.PageObjectsAsync<JsonDictionary>(query, continuationToken, requestOptions: requestOptions);
             return result;
         }
 
@@ -387,7 +361,7 @@ namespace Denomica.Cosmos
         public async IAsyncEnumerable<TItem> EnumItemsAsync<TItem>(IQueryable<TItem> query, Type? returnAs = null, QueryRequestOptions? requestOptions = null)
         {
             var queryDef = query.ToQueryDefinition<TItem>();
-            await foreach (var item in this.EnumItemsAsync<TItem>(queryDef, returnAs: returnAs, requestOptions: requestOptions))
+            await foreach (var item in this.EnumObjectsAsync<TItem>(queryDef, returnAs: returnAs, requestOptions: requestOptions))
             {
                 yield return item;
             }
@@ -436,9 +410,9 @@ namespace Denomica.Cosmos
         /// <returns>An asynchronous stream of items of type <typeparamref name="TItem"/> that match the query.</returns>
         public async IAsyncEnumerable<TItem> EnumItemsAsync<TItem>(QueryDefinition query, Type? returnAs = null, QueryRequestOptions? requestOptions = null)
         {
-            await foreach (var item in this.EnumItemsAsync(query, requestOptions: requestOptions))
+            await foreach (var item in this.EnumObjectsAsync<TItem>(query, returnAs: returnAs, requestOptions: requestOptions))
             {
-                yield return this.Convert<TItem>(item, returnAs: returnAs);
+                yield return item;
             }
         }
 
@@ -452,22 +426,12 @@ namespace Denomica.Cosmos
         /// <returns>
         /// Returns the results as an async enumerable collection.
         /// </returns>
-        public async IAsyncEnumerable<Dictionary<string, object?>> EnumItemsAsync(QueryDefinition query, QueryRequestOptions? requestOptions = null)
+        public async IAsyncEnumerable<JsonDictionary> EnumItemsAsync(QueryDefinition query, QueryRequestOptions? requestOptions = null)
         {
-            string? continuationToken = null;
-
-            do
+            await foreach(var item in this.EnumObjectsAsync<JsonDictionary>(query, requestOptions: requestOptions))
             {
-                var result = await this.PageItemsAsync(query, continuationToken: continuationToken, requestOptions: requestOptions);
-                continuationToken = result.ContinuationToken;
-
-                foreach (var item in result.Items)
-                {
-                    yield return item;
-                }
-            } while (continuationToken?.Length > 0);
-
-            yield break;
+                yield return item;
+            }
         }
 
 
@@ -525,20 +489,76 @@ namespace Denomica.Cosmos
 
 
 
-        private TItem Convert<TItem>(Dictionary<string, object?> source, Type? returnAs = null)
+        private TItem Convert<TItem>(object source, Type? returnAs = null)
         {
             Type targetType = returnAs ?? typeof(TItem);
-            TItem resultItem = default!;
-            if (null == returnAs)
+            TItem resultItem;
+
+            if (source?.GetType() == targetType)
             {
-                resultItem = JsonSerializer.Deserialize<TItem>(JsonSerializer.Serialize(source, options: this.SerializationOptions), options: this.SerializationOptions);
+                resultItem = (TItem)source;
             }
             else
             {
-                resultItem = (TItem)JsonSerializer.Deserialize(JsonSerializer.Serialize(source, options: this.SerializationOptions), returnAs, options: this.SerializationOptions);
+                resultItem = (TItem)JsonSerializer.Deserialize(JsonSerializer.Serialize(source, options: this.SerializationOptions), targetType, options: this.SerializationOptions);
             }
 
             return resultItem ?? throw new Exception($"Cannot convert given dictionary to type '{targetType.FullName}'.");
+        }
+
+        private async IAsyncEnumerable<TObject> EnumObjectsAsync<TObject>(QueryDefinition query, Type? returnAs = null, QueryRequestOptions? requestOptions = null)
+        {
+            string? continuationToken = null;
+            do
+            {
+                var result = await this.PageObjectsAsync<TObject>(query, continuationToken: continuationToken, returnAs: returnAs, requestOptions: requestOptions);
+                continuationToken = result.ContinuationToken;
+                foreach (var item in result.Items)
+                {
+                    yield return item;
+                }
+            } while (continuationToken?.Length > 0);
+            yield break;
+        }
+
+        private async Task<PageResult<object>> PageObjectsAsync(QueryDefinition query, string? continuationToken = null, QueryRequestOptions? requestOptions = null)
+        {
+            PageResult<object> result = new PageResult<object>(this, query, requestOptions: requestOptions);
+            var items = new List<object>();
+            var iterator = this.Container.GetItemQueryIterator<object>(query, continuationToken, requestOptions: requestOptions);
+            if (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync();
+                result.ContinuationToken = response.ContinuationToken;
+                result.StatusCode = response.StatusCode;
+                result.RequestCharge = response.RequestCharge;
+
+                foreach (var item in response)
+                {
+                    items.Add(item);
+                }
+                result.Items = items;
+            }
+            return result;
+        }
+
+        private async Task<PageResult<TObject>> PageObjectsAsync<TObject>(QueryDefinition query, string? continuationToken = null, Type? returnAs = null, QueryRequestOptions? requestOptions = null)
+        {
+            PageResult<TObject> result = new PageResult<TObject>(this, query, requestOptions: requestOptions);
+            var items = new List<TObject>();
+            var objectResult = await this.PageObjectsAsync(query, continuationToken, requestOptions);
+
+            result.ContinuationToken = objectResult.ContinuationToken;
+            result.StatusCode = objectResult.StatusCode;
+            result.RequestCharge = objectResult.RequestCharge;
+            
+            foreach (var item in objectResult.Items)
+            {
+                items.Add(this.Convert<TObject>(item, returnAs: returnAs));
+            }
+            result.Items = items;
+            
+            return result;
         }
 
     }
