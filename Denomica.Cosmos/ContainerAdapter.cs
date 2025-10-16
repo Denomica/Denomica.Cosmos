@@ -495,13 +495,19 @@ namespace Denomica.Cosmos
             Type targetType = returnAs ?? typeof(TItem);
             TItem resultItem;
 
+            if(null == source)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             if (source?.GetType() == targetType)
             {
                 resultItem = (TItem)source;
             }
             else
             {
-                var json = JsonSerializer.Serialize(source, options: this.SerializationOptions);
+                var obj = JsonUtil.CreateDictionary(source!);
+                var json = JsonSerializer.Serialize(obj, options: this.SerializationOptions);
 
                 try
                 {

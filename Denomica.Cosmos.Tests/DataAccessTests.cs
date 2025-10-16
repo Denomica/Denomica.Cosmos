@@ -6,6 +6,7 @@ using System;
 using System.Text.Json;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using System.Drawing.Printing;
 
 namespace Denomica.Cosmos.Tests
 {
@@ -146,6 +147,22 @@ namespace Denomica.Cosmos.Tests
             Assert.IsNotNull(item);
             Assert.AreEqual(itemResult.Resource.Id, item.Id);
             Assert.AreEqual(itemResult.Resource.DisplayName, item.DisplayName);
+        }
+
+        [TestMethod]
+        [Description("Verifies that the FirstOrDefaultAsync method also works with a query that returns only values.")]
+        public async Task GetFirstOrDefault03()
+        {
+            var result1 = await Adapter.UpsertItemAsync(new ChildItem1 { DisplayName = "Name #1" });
+            var result2 = await Adapter.UpsertItemAsync(new ChildItem1 { DisplayName = "Name #2" });
+
+            var query1 = new QueryDefinition("SELECT value c.displayName FROM c order by c.displayName asc");
+            var name1 = await Adapter.FirstOrDefaultAsync<string>(query1);
+            Assert.AreEqual(result1.Resource.DisplayName, name1);
+
+            var query2 = new QueryDefinition("SELECT value c.displayName FROM c order by c.displayName desc");
+            var name2 = await Adapter.FirstOrDefaultAsync<string>(query2);
+            Assert.AreEqual(result2.Resource.DisplayName, name2);
         }
 
 
