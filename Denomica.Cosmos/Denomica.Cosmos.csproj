@@ -5,7 +5,7 @@
 		<Nullable>enable</Nullable>
 		<Version>1.0.0-beta.7</Version>
 		<Company>Denomica Oy</Company>
-		<Authors>MikaBerglund</Authors>
+		<Authors>Mika Berglund</Authors>
 		<Description>Utilities that facilitate working with data in Azure Cosmos DB.</Description>
 		<Copyright>Copyright (c) 2025 Denomica Oy</Copyright>
 		<PackageProjectUrl>https://github.com/Denomica/Denomica.Cosmos/wiki</PackageProjectUrl>

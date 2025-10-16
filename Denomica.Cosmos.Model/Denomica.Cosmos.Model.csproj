@@ -15,7 +15,7 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<Title>Denomica.Cosmos.Model</Title>
 		<Company>Denomica Oy</Company>
-		<Authors>MikaBerglund</Authors>
+		<Authors>Mika Berglund</Authors>
 		<RepositoryType>git</RepositoryType>
   </PropertyGroup>
 

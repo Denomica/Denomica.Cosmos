@@ -1,12 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<Nullable>enable</Nullable>
+		<Authors>Mika Berglund</Authors>
+		<Company>Denomica Oy</Company>
+		<Copyright>Copyright (c) 2025 Denomica Oy</Copyright>
+		<Description>Provides model classes and functionality that facilitates storing JSON documents conforming to the Schema.org specification in Azure Cosmos DB.</Description>
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/Denomica/Denomica.Cosmos</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/Denomica/Denomica.Cosmos/wiki</PackageProjectUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Title>Denomica.Cosmos.SchemaOrg</Title>
+		<Version>1.0.0-beta.1</Version>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Denomica.Cosmos.Model\Denomica.Cosmos.Model.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Denomica.Cosmos.Model\Denomica.Cosmos.Model.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="readme.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
 
 </Project>
