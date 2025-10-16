@@ -11,7 +11,7 @@
 		<Copyright>Copyright (c) 2025 Denomica Oy</Copyright>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/Denomica/Denomica.Cosmos</RepositoryUrl>
-		<PackageProjectUrl>https://github.com/Denomica/Denomica.Cosmos/wiki</PackageProjectUrl>
+		<PackageProjectUrl>https://github.com/Denomica/Denomica.Cosmos/wiki/Denomica.Cosmos.Odata</PackageProjectUrl>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>

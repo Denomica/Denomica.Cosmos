@@ -8,7 +8,7 @@
 		<Authors>Mika Berglund</Authors>
 		<Description>Utilities that facilitate working with data in Azure Cosmos DB.</Description>
 		<Copyright>Copyright (c) 2025 Denomica Oy</Copyright>
-		<PackageProjectUrl>https://github.com/Denomica/Denomica.Cosmos/wiki</PackageProjectUrl>
+		<PackageProjectUrl>https://github.com/Denomica/Denomica.Cosmos/wiki/Denomica.Cosmos</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Denomica/Denomica.Cosmos</RepositoryUrl>
 		<PackageTags>Azure;Cosmos DB</PackageTags>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>

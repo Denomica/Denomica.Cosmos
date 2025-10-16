@@ -285,6 +285,30 @@ namespace Denomica.Cosmos
         }
 
         /// <summary>
+        /// Retrieves a paginated set of items from the data source based on the specified query shape and optional
+        /// parameters.
+        /// </summary>
+        /// <remarks>This method allows for flexible query shaping and supports pagination through the use
+        /// of continuation tokens. It is particularly useful for scenarios where large datasets need to be retrieved in
+        /// manageable chunks.</remarks>
+        /// <typeparam name="TItem">The type of the items to be retrieved.</typeparam>
+        /// <param name="queryShaper">A function that shapes the query by applying filters, projections, or other transformations to the  <see
+        /// cref="IQueryable{T}"/> representing the data source.</param>
+        /// <param name="continuationToken">An optional token used to retrieve the next page of results. If null, the first page of results is
+        /// retrieved.</param>
+        /// <param name="returnAs">An optional type to which the items in the result set should be cast. If null, the items are returned as
+        /// <typeparamref name="TItem"/>.</param>
+        /// <param name="requestOptions">Optional settings that specify additional query options, such as consistency level or request charge limits.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a <see
+        /// cref="PageResult{TItem}"/>  object that includes the retrieved items and a continuation token for fetching
+        /// the next page, if available.</returns>
+        public Task<PageResult<TItem>> PageItemsAsync<TItem>(Func<IQueryable<TItem>, IQueryable<TItem>> queryShaper, string? continuationToken = null, Type? returnAs = null, QueryRequestOptions? requestOptions = null)
+        {
+            var shapedQuery = queryShaper(this.Container.GetItemLinqQueryable<TItem>(requestOptions: requestOptions));
+            return this.PageItemsAsync<TItem>(shapedQuery.ToQueryDefinition(), continuationToken, returnAs: returnAs, requestOptions: requestOptions);
+        }
+
+        /// <summary>
         /// Executes a query against the underlying container and retrieves a paged result set with an optional continuation token.
         /// </summary>
         /// <typeparam name="TItem">The type of the items to be returned.</typeparam>

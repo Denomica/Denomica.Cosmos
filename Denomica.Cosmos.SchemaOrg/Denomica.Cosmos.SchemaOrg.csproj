@@ -9,7 +9,7 @@
 		<Description>Provides model classes and functionality that facilitates storing JSON documents conforming to the Schema.org specification in Azure Cosmos DB.</Description>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/Denomica/Denomica.Cosmos</RepositoryUrl>
-		<PackageProjectUrl>https://github.com/Denomica/Denomica.Cosmos/wiki</PackageProjectUrl>
+		<PackageProjectUrl>https://github.com/Denomica/Denomica.Cosmos/wiki/Denomica.Cosmos.SchemaOrg</PackageProjectUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>Denomica.Cosmos.SchemaOrg</Title>

@@ -5,7 +5,7 @@
 		<Nullable>enable</Nullable>
 		<Description>Model classes designed to be stored in a Cosmos DB container.</Description>
 		<Copyright>Copyright (c) 2025 Denomica Oy</Copyright>
-		<PackageProjectUrl>https://github.com/Denomica/Denomica.Cosmos/wiki</PackageProjectUrl>
+		<PackageProjectUrl>https://github.com/Denomica/Denomica.Cosmos/wiki/Denomica.Cosmos.Model</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Denomica/Denomica.Cosmos</RepositoryUrl>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 		<PackageTags>Azure;Cosmos DB;Data Model</PackageTags>
