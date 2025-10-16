@@ -12,6 +12,7 @@ using System.IO;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Options;
 
 namespace Denomica.Cosmos
 {
@@ -500,7 +501,16 @@ namespace Denomica.Cosmos
             }
             else
             {
-                resultItem = (TItem)JsonSerializer.Deserialize(JsonSerializer.Serialize(source, options: this.SerializationOptions), targetType, options: this.SerializationOptions);
+                var json = JsonSerializer.Serialize(source, options: this.SerializationOptions);
+
+                try
+                {
+                    resultItem = (TItem)JsonSerializer.Deserialize(json, targetType, options: this.SerializationOptions);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Unable to deserialize the given object to target type '{targetType.FullName}' and cast it to an instance of '{typeof(TItem).FullName}'.", ex);
+                }
             }
 
             return resultItem ?? throw new Exception($"Cannot convert given dictionary to type '{targetType.FullName}'.");

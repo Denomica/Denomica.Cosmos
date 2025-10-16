@@ -135,6 +135,20 @@ namespace Denomica.Cosmos.Tests
             Assert.AreEqual(itm2.DisplayName, itm2b.DisplayName);
         }
 
+        [TestMethod]
+        [Description("Verifies that the FirstOrDefaultAsync method works with a queryable with both Where and OrderBy clauses.")]
+        public async Task GetFirstOrDefault02()
+        {
+            var itemResult = await Adapter.UpsertItemAsync(new ChildItem1 { DisplayName = "The Name" });
+
+            var item = await Adapter.FirstOrDefaultAsync<ChildItem1>(q => q.Where(x => x.Id == itemResult.Resource.Id).OrderByDescending(x => x.DisplayName));
+
+            Assert.IsNotNull(item);
+            Assert.AreEqual(itemResult.Resource.Id, item.Id);
+            Assert.AreEqual(itemResult.Resource.DisplayName, item.DisplayName);
+        }
+
+
 
         [TestMethod]
         [Description("Stores items in the database and queries for them using a QueryDefinition object.")]
