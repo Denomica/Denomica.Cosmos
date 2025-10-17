@@ -8,6 +8,10 @@ The documentation for this library is available on the [library wiki](https://gi
 
 ## Versions
 
+### 1.0.0
+
+- The first stable release of the `Denomica.Cosmos.Odata` library.
+
 ### 1.0.0-beta.x
 
 Beta versions of the library. APIs can change without warning.
