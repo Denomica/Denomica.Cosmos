@@ -190,8 +190,8 @@ namespace Denomica.Cosmos
         /// the query returns no items.</returns>
         public async Task<JsonDictionary?> FirstOrDefaultAsync(QueryDefinition query)
         {
-            var result = await this.EnumItemsAsync(query, requestOptions: new QueryRequestOptions { MaxItemCount = 1 }).ToListAsync();
-            return result.FirstOrDefault();
+            var page = await this.PageItemsAsync<JsonDictionary>(query, requestOptions: new QueryRequestOptions { MaxItemCount = 1 });
+            return page.Items.FirstOrDefault();
         }
 
         /// <summary>
@@ -212,8 +212,24 @@ namespace Denomica.Cosmos
         /// </returns>
         public async Task<TItem> FirstOrDefaultAsync<TItem>(QueryDefinition query, Type? returnAs = null)
         {
-            var result = await this.EnumItemsAsync<TItem>(query, returnAs: returnAs, requestOptions: new QueryRequestOptions { MaxItemCount = 1 }).ToListAsync();
-            return result.FirstOrDefault();
+            var page = await this.PageItemsAsync<TItem>(query, returnAs: returnAs, requestOptions: new QueryRequestOptions { MaxItemCount = 1 });
+            return page.Items.FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Asynchronously retrieves the first element of a sequence, or a default value if the sequence contains no
+        /// elements.
+        /// </summary>
+        /// <typeparam name="TItem">The type of the elements in the sequence.</typeparam>
+        /// <param name="query">The queryable sequence to retrieve the first element from.</param>
+        /// <param name="returnAs">An optional type to which the result should be cast. If null, the result is returned as <typeparamref
+        /// name="TItem"/>.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the first element of the
+        /// sequence,  or the default value of <typeparamref name="TItem"/> if the sequence contains no elements.</returns>
+        public async Task<TItem> FirstOrDefaultAsync<TItem>(IQueryable<TItem> query, Type? returnAs = null)
+        {
+            var page = await this.PageItemsAsync<TItem>(query, returnAs: returnAs, requestOptions: new QueryRequestOptions { MaxItemCount = 1 });
+            return page.Items.FirstOrDefault();
         }
 
         /// <summary>
@@ -237,10 +253,8 @@ namespace Denomica.Cosmos
         /// </returns>
         public async Task<TItem> FirstOrDefaultAsync<TItem>(Func<IQueryable<TItem>, IQueryable<TItem>> queryShaper, Type? returnAs = null)
         {
-            var requestOptions = new QueryRequestOptions { MaxItemCount = 1 };
-            var shapedQuery = queryShaper(this.Container.GetItemLinqQueryable<TItem>(requestOptions: requestOptions));
-            var result = await this.EnumItemsAsync<TItem>(x => shapedQuery, returnAs: returnAs, requestOptions: requestOptions).ToListAsync();
-            return result.FirstOrDefault();
+            var page = await this.PageItemsAsync(queryShaper, returnAs: returnAs, requestOptions: new QueryRequestOptions { MaxItemCount = 1 });
+            return page.Items.FirstOrDefault();
         }
 
         /// <summary>

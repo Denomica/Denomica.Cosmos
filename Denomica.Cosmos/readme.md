@@ -26,6 +26,10 @@ The following packages can be used together with this library to provide additio
 
 Major improvements in various versions of this library.
 
+### v1.0.0
+
+The first stable release. This version now provides the same core functionality as the [`Denomica.Cosmos.Extensions`](https://www.nuget.org/packages/Denomica.Cosmos.Extensions/) Nuget package.
+
 ### v1.0.0-beta.x
 
 Preliminary releases inteded for shaping the first stable version of the `Denomica.Cosmos` library.
