@@ -10,14 +10,15 @@ namespace Denomica.Cosmos.SchemaOrg.Services
 {
     public sealed class SchemaOrgEnvelopeBuilder : SchemaOrgEnvelopeBuilderBase
     {
-        public override async IAsyncEnumerable<SchemaOrgEnvelope> BuildAsync(Stream jsonStream)
+        public override async IAsyncEnumerable<SchemaOrgEnvelope> BuildAsync(Stream jsonStream, SchemaOrgEnvelopeBuilderOptions? options = null)
         {
+            options ??= new SchemaOrgEnvelopeBuilderOptions();
+
             string json = string.Empty;
             using (var reader = new StreamReader(jsonStream))
             {
                 json = await reader.ReadToEndAsync();
             }
-
 
             yield break;
         }

@@ -119,9 +119,9 @@ namespace Denomica.Cosmos.SchemaOrg.Model
         /// <summary>
         /// The original content of the Schema.org object that the current envelope represents.
         /// </summary>
-        public Dictionary<string, object?> Content
+        public Dictionary<string, object?>? Content
         {
-            get { return this.GetProperty(nameof(Content), () => new Dictionary<string, object?>()); }
+            get { return this.GetProperty<Dictionary<string, object?>?>(nameof(Content)); }
             set { this.SetProperty(nameof(Content), value); }
         }
     }

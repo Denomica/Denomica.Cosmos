@@ -12,7 +12,7 @@ namespace Denomica.Cosmos.SchemaOrg.Services
     public abstract class SchemaOrgEnvelopeBuilderBase : ISchemaOrgEnvelopeBuilder
     {
         /// <inheritdoc/>
-        public async IAsyncEnumerable<SchemaOrgEnvelope> BuildAsync(string json)
+        public async IAsyncEnumerable<SchemaOrgEnvelope> BuildAsync(string json, SchemaOrgEnvelopeBuilderOptions? options = null)
         {
             using(var strm = new MemoryStream())
             {
@@ -31,7 +31,7 @@ namespace Denomica.Cosmos.SchemaOrg.Services
         }
 
         /// <inheritdoc/>
-        public abstract IAsyncEnumerable<SchemaOrgEnvelope> BuildAsync(Stream jsonStream);
+        public abstract IAsyncEnumerable<SchemaOrgEnvelope> BuildAsync(Stream jsonStream, SchemaOrgEnvelopeBuilderOptions? options = null);
 
     }
 }

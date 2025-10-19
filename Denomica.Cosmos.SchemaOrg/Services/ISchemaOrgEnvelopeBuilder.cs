@@ -19,7 +19,7 @@ namespace Denomica.Cosmos.SchemaOrg.Services
         /// <param name="json">
         /// The JSON string to build <see cref="SchemaOrgEnvelope"/> instances from.
         /// </param>
-        IAsyncEnumerable<SchemaOrgEnvelope> BuildAsync(string json);
+        IAsyncEnumerable<SchemaOrgEnvelope> BuildAsync(string json, SchemaOrgEnvelopeBuilderOptions? options = null);
 
         /// <summary>
         /// Builds instances of <see cref="SchemaOrgEnvelope"/> from the provided JSON stream asynchronously.
@@ -28,6 +28,6 @@ namespace Denomica.Cosmos.SchemaOrg.Services
         /// The stream containing the JSON to build <see cref="SchemaOrgEnvelope"/> instances from.
         /// </param>
         /// <returns></returns>
-        IAsyncEnumerable<SchemaOrgEnvelope> BuildAsync(Stream jsonStream);
+        IAsyncEnumerable<SchemaOrgEnvelope> BuildAsync(Stream jsonStream, SchemaOrgEnvelopeBuilderOptions? options = null);
     }
 }
