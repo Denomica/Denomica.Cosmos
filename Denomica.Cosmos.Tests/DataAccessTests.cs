@@ -17,22 +17,7 @@ namespace Denomica.Cosmos.Tests
         [ClassInitialize]
         public static void ClassInit(TestContext context)
         {
-            var connectionString = $"{context.Properties["connectionString"]}";
-            var databaseId = $"{context.Properties["databaseId"]}";
-            var containerId = $"{context.Properties["containerId"]}";
-
-            var provider = new ServiceCollection()
-                .AddCosmosServices()
-                .WithContainerAdapter((opt, sp) =>
-                {
-                    opt.ConnectionString = connectionString;
-                    opt.DatabaseId = databaseId;
-                    opt.ContainerId = containerId;
-                })
-                .Services
-
-                .BuildServiceProvider();
-
+            var provider = context.CreateServiceProvider();
             Adapter = provider.GetRequiredService<ContainerAdapter>();
         }
 
@@ -43,29 +28,7 @@ namespace Denomica.Cosmos.Tests
         [TestCleanup]
         public async Task ClearContainer()
         {
-            var tasks = new List<Task>();
-            var items = Adapter.EnumItemsAsync(new QueryDefinition("select c.id,c.partition from c"));
-            await foreach(var item in items)
-            {
-                PartitionKey partition = PartitionKey.None;
-                var id = item["id"] as string ?? throw new NullReferenceException();
-                if(item.TryGetValue("partition", out var partitionValue))
-                {
-                    partition = Adapter.CreatePartitionKey(partitionValue);
-                }
-                tasks.Add(Adapter.DeleteItemAsync(id, partition, throwIfNotfound: false));
-            }
-
-            await Task.WhenAll(tasks);
-
-            var errors = from x in tasks where !x.IsCompletedSuccessfully select x;
-            if(errors.Any())
-            {
-                throw new Exception("Unable to clear all items from container.");
-            }
-
-            var count = await this.GetContainerCountAsync();
-            Assert.AreEqual(0, count);
+            await Adapter.ClearContainerAsync();
         }
 
 
@@ -562,12 +525,6 @@ namespace Denomica.Cosmos.Tests
         }
 
 
-        private async Task<int> GetContainerCountAsync()
-        {
-            var query = new QueryDefinition("select count(1) as itemCount from c");
-            var result = await Adapter.FirstOrDefaultAsync<ItemCountEntity>(query);// .QueryItemsAsync(query).ToListAsync();
-            return result?.ItemCount ?? 0;
-        }
     }
 
     public class ContainerItem
