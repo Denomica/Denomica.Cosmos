@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>netstandard2.1</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<Title>Denomica.Cosmos.Odata</Title>
 		<Version>1.0.0</Version>
@@ -18,7 +18,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Denomica.OData.Extensions" Version="2.0.0" />
+		<PackageReference Include="Denomica.Odata" Version="1.0.0-beta.2" />
 	</ItemGroup>
 
 	<ItemGroup>

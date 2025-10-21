@@ -60,7 +60,7 @@ namespace Denomica.Cosmos.Tests
             Assert.AreEqual(0, count);
         }
 
-        private static async Task<int> GetContainerCountAsync(this ContainerAdapter adapter)
+        public static async Task<int> GetContainerCountAsync(this ContainerAdapter adapter)
         {
             var query = new QueryDefinition("select count(1) as itemCount from c");
             var result = await adapter.FirstOrDefaultAsync<ItemCountEntity>(query);// .QueryItemsAsync(query).ToListAsync();
