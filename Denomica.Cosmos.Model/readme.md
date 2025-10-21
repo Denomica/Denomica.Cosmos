@@ -18,6 +18,11 @@ This library defines a set of model classes that are designed to be stored in a 
 
 Major improvements in various versions.
 
+### v1.0.1
+
+- Added reference to [`System.ComponentModel.Annotations`](https://www.nuget.org/packages/System.ComponentModel.Annotations)
+- Added [`KeyAttribute`](https://learn.microsoft.com/dotnet/api/system.componentmodel.dataannotations.keyattribute) attribute to the `EntityBase.Id` property to specify that it is the primary key for all entities derived from `EntityBase`.
+
 ### v1.0.0
 
 - The first stable release of the Denomica.Cosmos.Model library.
