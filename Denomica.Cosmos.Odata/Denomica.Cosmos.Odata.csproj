@@ -18,7 +18,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Denomica.Odata" Version="1.0.0-beta.2" />
+		<PackageReference Include="Denomica.Odata" Version="1.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
