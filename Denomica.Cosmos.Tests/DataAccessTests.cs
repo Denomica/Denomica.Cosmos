@@ -56,7 +56,7 @@ namespace Denomica.Cosmos.Tests
             var errors = from x in upsertTasks where !x.IsCompletedSuccessfully select x.Result;
             Assert.AreEqual(0, errors.Count(), "There must be no error responses.");
 
-            var count = await this.GetContainerCountAsync();
+            var count = await Adapter.GetContainerCountAsync();
             Assert.AreEqual(itemCount, count);
         }
 
@@ -73,7 +73,7 @@ namespace Denomica.Cosmos.Tests
 
             await Adapter.DeleteItemAsync(item.Id, $"{partition}");
 
-            var count = await this.GetContainerCountAsync();
+            var count = await Adapter.GetContainerCountAsync();
             Assert.AreEqual(0, count, "All items must have been deleted from the container.");
         }
 
@@ -527,59 +527,4 @@ namespace Denomica.Cosmos.Tests
 
     }
 
-    public class ContainerItem
-    {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        public object Partition { get; set; } = Guid.NewGuid().ToString();
-    }
-
-    public class Item1
-    {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        public string Partition { get; set; } = Guid.NewGuid().ToString();
-
-        public int Index { get; set; }
-
-        public override int GetHashCode()
-        {
-            return this.ToString().GetHashCode();
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is Item1 && this.ToString() == obj.ToString();
-        }
-
-        public override string ToString()
-        {
-            return $"{this.Id}|{this.Partition}|{this.Index}";
-        }
-    }
-
-    public class ChildItem1 : Item1
-    {
-        public string? DisplayName { get; set; }
-
-        public override int GetHashCode()
-        {
-            return this.ToString().GetHashCode();
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is ChildItem1 && this.ToString() == obj.ToString();
-        }
-
-        public override string ToString()
-        {
-            return $"{base.ToString()}|{this.DisplayName}";
-        }
-    }
-
-    public class ItemCountEntity
-    {
-        public int ItemCount { get; set; }
-    }
 }

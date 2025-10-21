@@ -3,7 +3,7 @@ using Microsoft.OData.UriParser;
 using System;
 using System.Text;
 using Denomica.Cosmos;
-using Denomica.OData.Extensions;
+using Denomica.OData;
 using System.Linq;
 
 namespace Denomica.Cosmos.Odata
@@ -35,7 +35,7 @@ namespace Denomica.Cosmos.Odata
             builder
                 .AppendQueryText("SELECT")
                 .AppendQueryTextIf(" *", null == select || select.AllSelected)
-                .AppendQueryTextIf($" c.{string.Join(",c.", select.SelectedPaths())}", null != select && !select.AllSelected)
+                .AppendQueryTextIf($" c.{string.Join(",c.", select.SelectedPathIdentifiers())}", null != select && !select.AllSelected)
                 .AppendQueryText(" FROM c")
                 ;
 
@@ -65,8 +65,6 @@ namespace Denomica.Cosmos.Odata
 
             return builder;
         }
-
-
 
         /// <summary>
         /// Appends an <c>ORDER BY</c> clause to the query definition based on the specified OData URI parser.

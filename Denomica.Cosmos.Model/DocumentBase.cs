@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace Denomica.Cosmos.Model
@@ -18,6 +19,7 @@ namespace Denomica.Cosmos.Model
         /// <summary>
         /// Sets or returns the ID of the document.
         /// </summary>
+        [Key]
         public virtual string Id
         {
             get { return this.GetProperty<string>(nameof(Id), () => Guid.NewGuid().ToString()); }

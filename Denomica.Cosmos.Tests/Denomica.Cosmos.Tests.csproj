@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Denomica.Cosmos.Model\Denomica.Cosmos.Model.csproj" />
+    <ProjectReference Include="..\Denomica.Cosmos.Odata\Denomica.Cosmos.Odata.csproj" />
     <ProjectReference Include="..\Denomica.Cosmos\Denomica.Cosmos.csproj" />
   </ItemGroup>
 
