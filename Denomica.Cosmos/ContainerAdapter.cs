@@ -269,10 +269,10 @@ namespace Denomica.Cosmos
         /// </returns>
         public async Task<JsonDictionary?> FirstOrDefaultAsync(string id, PartitionKey partitionKey)
         {
-            var response = await this.Container.ReadItemAsync<JsonDictionary>(id, partitionKey);
+            var response = await this.Container.ReadItemAsync<object>(id, partitionKey);
             if(response.StatusCode == HttpStatusCode.OK)
             {
-                return response.Resource;
+                return JsonUtil.CreateDictionary(response.Resource);
             }
             return null;
         }

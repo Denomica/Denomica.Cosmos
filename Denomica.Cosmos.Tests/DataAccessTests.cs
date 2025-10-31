@@ -1,12 +1,14 @@
 using Microsoft.Azure.Cosmos;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Collections.Generic;
-using System;
-using System.Text.Json;
 using Microsoft.Azure.Cosmos.Linq;
+using Microsoft.Azure.Cosmos.Serialization.HybridRow.Layouts;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Drawing.Printing;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Denomica.Cosmos.Tests
 {
@@ -128,6 +130,29 @@ namespace Denomica.Cosmos.Tests
             Assert.AreEqual(result2.Resource.DisplayName, name2);
         }
 
+        [TestMethod]
+        [Description("Verifies that that child objects contained within objects stored in Cosmos DB are properly represented as dictionaries using the FirstOrDefaultAsync method.")]
+        public async Task GetFirstOrDefault04()
+        {
+            string id = Guid.NewGuid().ToString();
+            string partition = "my-partition";
+
+            var result1 = await Adapter.UpsertItemAsync(new Dictionary<string, object>
+            {
+                { "id", id },
+                { "partition", partition },
+                {
+                    "Child",
+                    new Dictionary<string, string> { { "Foo", "Bar" }}
+                }
+            });
+
+            var obj = await Adapter.FirstOrDefaultAsync(id, new PartitionKey(partition));
+            Assert.IsNotNull(obj);
+
+            var child = obj["child"];
+            Assert.IsTrue(child is Dictionary<string, object?>);
+        }
 
 
         [TestMethod]
@@ -468,6 +493,30 @@ namespace Denomica.Cosmos.Tests
             Assert.AreEqual(item.Resource.Id, idList.First());
         }
 
+        [TestMethod]
+        [Description("Creates an object with a child object, and assumes that also the child object is returned as a dictionary when enumerating the query result.")]
+        public async Task Query16()
+        {
+            var result1 = await Adapter.UpsertItemAsync(new Dictionary<string, object>
+            {
+                { "id", Guid.NewGuid().ToString() },
+                { "partition", "partition" },
+                {
+                    "Child",
+                    new Dictionary<string, string> { { "Foo", "Bar" }}
+                }
+            });
+
+            int itemCount = 0;
+            await foreach(var item in Adapter.EnumItemsAsync(new QueryDefinition("select * from c")))
+            {
+                itemCount++;
+                var child = item["child"];
+                Assert.IsTrue(child is Dictionary<string, object?>);
+            }
+
+            Assert.AreNotEqual(0, itemCount);
+        }
 
 
         [TestMethod]
