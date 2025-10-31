@@ -26,6 +26,10 @@ The following packages can be used together with this library to provide additio
 
 Major improvements in various versions of this library.
 
+### v1.0.1
+
+Fixed a bug that caused issues in the `ContainerAdapter.FirstOrDefaultAsync` method when a stored object has child objects. The child objects were not being deserialized correctly as dictionary objects.
+
 ### v1.0.0
 
 The first stable release. This version now provides the same core functionality as the [`Denomica.Cosmos.Extensions`](https://www.nuget.org/packages/Denomica.Cosmos.Extensions/) Nuget package.
