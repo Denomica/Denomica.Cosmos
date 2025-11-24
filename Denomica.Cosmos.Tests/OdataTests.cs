@@ -82,6 +82,88 @@ namespace Denomica.Cosmos.Tests
                 .Build()
                 .CreateUriParser("https://company.com/api/employees?$filter=employeeId eq '007'");
         }
+
+        [TestMethod]
+        public async Task QueryOdata03()
+        {
+            var period1 = await Adapter.UpsertItemAsync(new TimePeriod
+            {
+                Start = new DateOnly(2022, 1, 1),
+                End = new DateOnly(2022, 12, 31)
+            });
+            var period2 = await Adapter.UpsertItemAsync(new TimePeriod
+            {
+                Start = new DateOnly(2023, 1, 1),
+                End = new DateOnly(2023, 12, 31)
+            });
+
+            var query = new EdmModelBuilder()
+                .AddEntity<TimePeriod>(nameof(TimePeriod.Id), "timeperiods")
+                .Build()
+                .CreateUriParser("https://api.company.com/timeperiods?$filter=end lt 2023-01-01")
+                .CreateQueryDefinition();
+
+            var periods = await Adapter.EnumItemsAsync<TimePeriod>(query).ToListAsync();
+            Assert.AreEqual(1, periods.Count);
+            Assert.AreEqual(period1.Resource.Id, periods.First().Id);
+        }
+
+        [TestMethod]
+        public async Task QueryOdata04()
+        {
+            var period1 = await Adapter.UpsertItemAsync(new TimePeriod
+            {
+                Start = new DateOnly(2022, 1, 1),
+                End = new DateOnly(2022, 12, 31)
+            });
+            var period2 = await Adapter.UpsertItemAsync(new TimePeriod
+            {
+                Start = new DateOnly(2023, 1, 1),
+                End = new DateOnly(2023, 12, 31)
+            });
+
+            var query = new EdmModelBuilder()
+                .AddEntity<TimePeriod>(nameof(TimePeriod.Id), "timeperiods")
+                .Build()
+                .CreateUriParser("https://api.company.com/timeperiods?$select=start,end&$filter=end lt 2023-01-01")
+                .CreateQueryDefinition();
+
+            var periods = await Adapter.EnumItemsAsync<Dictionary<string, object?>>(query).ToListAsync();
+            Assert.AreEqual(1, periods.Count);
+            var period = periods.First();
+            Assert.AreEqual(2, period.Keys.Count);
+            Assert.IsTrue(period.Keys.Contains("start"));
+            Assert.IsTrue(period.Keys.Contains("end"));
+        }
+
+        [TestMethod]
+        public async Task QueryOdata05()
+        {
+            var ci1 = await Adapter.UpsertItemAsync(new ContentItem
+            {
+                Title = "Item #1",
+                Status = DocumentStatus.Draft
+            });
+            var ci2 = await Adapter.UpsertItemAsync(new ContentItem
+            {
+                Title = "Item #2",
+                Status = DocumentStatus.Approved
+            });
+
+            var model = new EdmModelBuilder()
+                .AddEntity<ContentItem>(nameof(ContentItem.Id), "contentitems")
+                .Build();
+
+            var query = model
+                .CreateUriParser("https://api.company.com/contentitems?$filter=status eq -1")
+                .CreateQueryDefinition();
+
+            var contentItems = await Adapter.EnumItemsAsync<ContentItem>(query).ToListAsync();
+            Assert.AreEqual(1, contentItems.Count);
+            Assert.AreEqual(ci2.Resource.Id, contentItems.First().Id);
+        }
+
+        
     }
 
 }

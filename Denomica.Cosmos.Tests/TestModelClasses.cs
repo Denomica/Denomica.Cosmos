@@ -7,6 +7,14 @@ using System.Threading.Tasks;
 
 namespace Denomica.Cosmos.Tests
 {
+
+    public enum DocumentStatus
+    {
+        Draft = 0,
+        Approved = 1,
+        Deleted = -1
+    };
+
     public class ContainerItem
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
@@ -182,6 +190,42 @@ namespace Denomica.Cosmos.Tests
         {
             get { return this.GetProperty<DateOnly>(nameof(HireDate)); }
             set { this.SetProperty(nameof(HireDate), value); }
+        }
+    }
+
+    public class TimePeriod : SyntheticPartitionKeyDocumentBase
+    {
+        public DateOnly Start
+        {
+            get { return this.GetProperty<DateOnly>(nameof(Start)); }
+            set { this.SetProperty(nameof(Start), value); }
+        }
+
+        public DateOnly? End
+        {
+            get { return this.GetProperty<DateOnly?>(nameof(End)); }
+            set { this.SetProperty(nameof(End), value); }
+        }
+    }
+
+    public class ContentItem : SyntheticPartitionKeyDocumentBase
+    {
+        public string Title
+        {
+            get { return this.GetProperty<string>(nameof(Title)); }
+            set { this.SetProperty(nameof(Title), value); }
+        }
+
+        public string? Body
+        {
+            get { return this.GetProperty<string?>(nameof(Body)); }
+            set { this.SetProperty(nameof(Body), value); }
+        }
+
+        public DocumentStatus Status
+        {
+            get { return this.GetProperty<DocumentStatus>(nameof(Status)); }
+            set { this.SetProperty(nameof(Status), value); }
         }
     }
 

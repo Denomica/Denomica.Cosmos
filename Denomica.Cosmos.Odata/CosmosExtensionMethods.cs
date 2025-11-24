@@ -35,7 +35,7 @@ namespace Denomica.Cosmos.Odata
             builder
                 .AppendQueryText("SELECT")
                 .AppendQueryTextIf(" *", null == select || select.AllSelected)
-                .AppendQueryTextIf($" c.{string.Join(",c.", select.SelectedPathIdentifiers())}", null != select && !select.AllSelected)
+                .AppendQueryTextIf($" c[\"{string.Join("\"],c[\"", select!.SelectedPathIdentifiers())}\"]", null != select && !select.AllSelected)
                 .AppendQueryText(" FROM c")
                 ;
 
@@ -205,8 +205,10 @@ namespace Denomica.Cosmos.Odata
         private static QueryDefinitionBuilder AppendFilterNode(this QueryDefinitionBuilder builder, SingleValuePropertyAccessNode node)
         {
             return builder
-                .AppendQueryText("c.")
-                .AppendQueryText(node.Property.Name);
+                .AppendQueryText("c[\"")
+                .AppendQueryText(node.Property.Name)
+                .AppendQueryText("\"]")
+                ;
         }
 
         private static QueryDefinitionBuilder AppendFilterNode(this QueryDefinitionBuilder builder, ConstantNode node)

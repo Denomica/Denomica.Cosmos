@@ -8,10 +8,15 @@ The documentation for this library is available on the [library wiki](https://gi
 
 ## Versions
 
-### 1.0.0
+### v2.0.0
+
+- Updated reference from [`Denomica.Cosmos.Extensions`](https://www.nuget.org/packages/Denomica.Cosmos.Extensions) to [`Denomica.Cosmos`](https://www.nuget.org/packages/Denomica.Cosmos). The new reference provides more or less the same functionality, but the namespaces have changed, so this must be considered as a breaking change. Hence the major version is updated.
+- Fixed a bug that caused a query error when an entity property name matched a Cosmos DB reserved keyword.
+
+#### Known Issues in v2.0.0
+
+- Still problems with filtering on properties that are types as enumerations. This will be fixed in a future version.
+
+### v1.0.0
 
 - The first stable release of the `Denomica.Cosmos.Odata` library.
-
-### 1.0.0-beta.x
-
-Beta versions of the library. APIs can change without warning.
