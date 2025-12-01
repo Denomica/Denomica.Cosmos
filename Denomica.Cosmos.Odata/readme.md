@@ -8,6 +8,16 @@ The documentation for this library is available on the [library wiki](https://gi
 
 ## Versions
 
+### v2.0.1
+
+- Fixed an issue where sorting on properties with reserved keywords caused an error. In this update, all field names are now property formatted as `c["PropertyName"]`, ensuring compatibility with Cosmos DB reserved keywords.
+
+#### Known Issues in v2.0.1
+
+- Same issues as in v2.0.0 with filtering on enumeration properties.
+
+
+
 ### v2.0.0
 
 - Updated reference from [`Denomica.Cosmos.Extensions`](https://www.nuget.org/packages/Denomica.Cosmos.Extensions) to [`Denomica.Cosmos`](https://www.nuget.org/packages/Denomica.Cosmos). The new reference provides more or less the same functionality, but the namespaces have changed, so this must be considered as a breaking change. Hence the major version is updated.

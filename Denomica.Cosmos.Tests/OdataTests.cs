@@ -163,7 +163,37 @@ namespace Denomica.Cosmos.Tests
             Assert.AreEqual(ci2.Resource.Id, contentItems.First().Id);
         }
 
-        
+        [TestMethod]
+        public async Task QueryOdata06()
+        {
+            var tp1 = await Adapter.UpsertItemAsync(new TimePeriod
+            {
+                Start = new DateOnly(2026, 1, 1),
+                End = new DateOnly(2026, 1, 31)
+            });
+            var tp2 = await Adapter.UpsertItemAsync(new TimePeriod
+            {
+                Start = new DateOnly(2026, 2, 1),
+                End = new DateOnly(2026, 2, 28)
+            });
+
+            var query = new EdmModelBuilder()
+                .AddEntity<TimePeriod>(nameof(TimePeriod.Id), "timeperiods")
+                .Build()
+                .CreateUriParser("https://api.company.com/timeperiods?$orderby=end desc")
+                .CreateQueryDefinition();
+
+            var periods = await Adapter.EnumItemsAsync<TimePeriod>(query).ToListAsync();
+            Assert.AreEqual(2, periods.Count);
+            var first = periods.First();
+            var second = periods.Skip(1).First();
+
+            Assert.AreEqual(tp2.Resource.Id, first.Id);
+            Assert.AreEqual(tp1.Resource.Id, second.Id);
+        }
+
+
+
     }
 
 }

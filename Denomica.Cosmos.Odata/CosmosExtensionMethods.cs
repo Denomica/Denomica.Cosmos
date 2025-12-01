@@ -87,8 +87,9 @@ namespace Denomica.Cosmos.Odata
                     builder
                         .AppendQueryTextIf(",", orderByIndex > 0)
                         .AppendQueryTextIf(" ", orderByIndex == 0)
-                        .AppendQueryText("c.")
+                        .AppendQueryText("c[\"")
                         .AppendQueryText(item.Item1.Property.Name)
+                        .AppendQueryText("\"]")
                         .AppendQueryTextIf(" desc", item.Item2 == OrderByDirection.Descending);
 
                     orderByIndex++;
