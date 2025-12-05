@@ -8,15 +8,13 @@ The documentation for this library is available on the [library wiki](https://gi
 
 ## Versions
 
+### v2.0.2
+
+- Fixed a problem with filtering on properties that are typed as `DateOnly` structs. Prior to this fix, then were incorrectly handled as `DateTime` properties, which resulted in the time component being a part of the filter expression, which would fail to properly match items, expecially when using the `equals` operator.
+
 ### v2.0.1
 
 - Fixed an issue where sorting on properties with reserved keywords caused an error. In this update, all field names are now property formatted as `c["PropertyName"]`, ensuring compatibility with Cosmos DB reserved keywords.
-
-#### Known Issues in v2.0.1
-
-- Same issues as in v2.0.0 with filtering on enumeration properties.
-
-
 
 ### v2.0.0
 
