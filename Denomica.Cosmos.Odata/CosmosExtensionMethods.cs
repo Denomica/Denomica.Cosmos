@@ -217,12 +217,12 @@ namespace Denomica.Cosmos.Odata
             var name = $"@p{builder.Parameters.Count}";
 
             object value = node.Value;
-            if(value is Microsoft.OData.Edm.Date)
+            if (value is Microsoft.OData.Edm.Date)
             {
-                // We need to convert an Edm.Date to a DateTime, because otherwise filtering on dates
-                // will not work and produce the required result.
+                // We need to convert an Edm.Date to a DateOnly struct, because otherwise filtering on dates
+                // will use the full DateTime value including time portion, which will not work.
                 var dt = (Microsoft.OData.Edm.Date)node.Value;
-                value = new DateTime(dt.Year, dt.Month, dt.Day);
+                value = new DateOnly(dt.Year, dt.Month, dt.Day);
             }
 
             return builder
