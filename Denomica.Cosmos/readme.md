@@ -26,6 +26,19 @@ The following packages can be used together with this library to provide additio
 
 Major improvements in various versions of this library.
 
+### v1.0.2
+
+Added support for token credential authentication for Azure Cosmos DB.
+
+The authentication mode is determined by whether the **connection string** contains the `AccountKey` property:
+
+- If `AccountKey` is present, the library uses the connection string directly to create the `CosmosClient` (account key authentication).
+- If `AccountKey` is not present, the library treats the value as either:
+  - a Cosmos DB endpoint URI, or
+  - a connection string that contains `AccountEndpoint`.
+
+In both cases where `AccountKey` is not present, a token credential must be registered through `CosmosServicesBuilder`.
+
 ### v1.0.1
 
 Fixed a bug that caused issues in the `ContainerAdapter.FirstOrDefaultAsync` method when a stored object has child objects. The child objects were not being deserialized correctly as dictionary objects.

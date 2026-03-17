@@ -2,6 +2,8 @@
 <RunSettings>
 	<TestRunParameters>
 		<Parameter name="connectionString" value="AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==" />
+		<Parameter name="connectionString2" value="AccountEndpoint=https://localhost:8081/" />
+		<Parameter name="connectionString3" value="https://localhost:8081/" />
 		<Parameter name="databaseId" value="denomica-tests" />
 		<Parameter name="containerId" value="cosmos-extensions" />
 	</TestRunParameters>
