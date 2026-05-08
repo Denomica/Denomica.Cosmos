@@ -26,6 +26,12 @@ The following packages can be used together with this library to provide additio
 
 Major improvements in various versions of this library.
 
+### v1.0.3
+
+Fixed a bug that caused an exception to be thrown when accessing items and using the `VectorDistance` function in the `order by` clause. Such queries dot not support accessing the `ContinuationToken` property of the `FeedResponse<T>` object.
+
+With this update, queries with `VectorDistance` can be successfully executed.
+
 ### v1.0.2
 
 Added support for token credential authentication for Azure Cosmos DB.

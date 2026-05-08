@@ -234,4 +234,13 @@ namespace Denomica.Cosmos.Tests
         [PartitionKeyProperty(1, formatString: "Foo/{0:yyyyMM}")]
         public DateTimeOffset Timestamp { get; set; }
     }
+
+    public class VectorDocument : TestDocument
+    {
+        public VectorEmbedding Embedding
+        {
+            get { return this.GetProperty<VectorEmbedding>(nameof(Embedding)); }
+            set { this.SetProperty(nameof(Embedding), value); }
+        }
+    }
 }

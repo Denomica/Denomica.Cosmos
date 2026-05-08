@@ -141,6 +141,15 @@ namespace Denomica.Cosmos
         }
 
         /// <summary>
+        /// Returns a new instance of the <see cref="QueryDefinitionBuilder"/> class, which can be used to construct
+        /// query definitions for querying the underlying container.
+        /// </summary>
+        public QueryDefinitionBuilder CreateQueryDefinitionBuilder()
+        {
+            return new QueryDefinitionBuilder();
+        }
+
+        /// <summary>
         /// Deletes the item with the given <paramref name="id"/> and <paramref name="partition"/>.
         /// </summary>
         /// <param name="id">The ID of the item to delete.</param>
@@ -575,6 +584,19 @@ namespace Denomica.Cosmos
             yield break;
         }
 
+        private bool IsContinuationTokenSupported<T>(FeedResponse<T> response)
+        {
+            try
+            {
+                _ = response.ContinuationToken;
+                return true;
+            }
+            catch (ArgumentException)
+            {
+                return false;
+            }
+        }
+
         private async Task<PageResult<object>> PageObjectsAsync(QueryDefinition query, string? continuationToken = null, QueryRequestOptions? requestOptions = null)
         {
             PageResult<object> result = new PageResult<object>(this, query, requestOptions: requestOptions);
@@ -583,7 +605,10 @@ namespace Denomica.Cosmos
             if (iterator.HasMoreResults)
             {
                 var response = await iterator.ReadNextAsync();
-                result.ContinuationToken = response.ContinuationToken;
+                if(this.IsContinuationTokenSupported(response))
+                {
+                    result.ContinuationToken = response.ContinuationToken;
+                }
                 result.StatusCode = response.StatusCode;
                 result.RequestCharge = response.RequestCharge;
 

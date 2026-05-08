@@ -5,7 +5,7 @@
 		<Parameter name="connectionString2" value="AccountEndpoint=https://localhost:8081/" />
 		<Parameter name="connectionString3" value="https://localhost:8081/" />
 		<Parameter name="databaseId" value="denomica-tests" />
-		<Parameter name="containerId" value="cosmos-extensions" />
+		<Parameter name="containerId" value="cosmos" />
 	</TestRunParameters>
 	<RunConfiguration>
 		<MaxCpuCount>1</MaxCpuCount>
