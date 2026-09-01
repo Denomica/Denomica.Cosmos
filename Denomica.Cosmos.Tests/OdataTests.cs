@@ -14,6 +14,17 @@ namespace Denomica.Cosmos.Tests
     [TestClass]
     public class OdataTests
     {
+        public class NestedDocument : SyntheticPartitionKeyDocumentBase
+        {
+            public DataSource DataSource { get; set; } = new DataSource();
+        }
+
+        public class DataSource
+        {
+            public string Key { get; set; } = string.Empty;
+
+            public string Type { get; set; } = string.Empty;
+        }
 
         [ClassInitialize]
         public static async Task ClassInit(TestContext context)
@@ -137,7 +148,7 @@ namespace Denomica.Cosmos.Tests
         }
 
         [TestMethod]
-        public async Task QueryOdata05()
+        public async Task QueryOdata05_FiltersOnNumericEnumValue()
         {
             var ci1 = await Adapter.UpsertItemAsync(new ContentItem
             {
@@ -155,12 +166,39 @@ namespace Denomica.Cosmos.Tests
                 .Build();
 
             var query = model
-                .CreateUriParser("https://api.company.com/contentitems?$filter=status eq -1")
+                .CreateUriParser("https://api.company.com/contentitems?$filter=status eq 1")
                 .CreateQueryDefinition();
 
             var contentItems = await Adapter.EnumItemsAsync<ContentItem>(query).ToListAsync();
             Assert.AreEqual(1, contentItems.Count);
             Assert.AreEqual(ci2.Resource.Id, contentItems.First().Id);
+        }
+
+        [TestMethod]
+        public async Task QueryOdata10_FiltersOnLexicalEnumValue()
+        {
+            await Adapter.UpsertItemAsync(new ContentItem
+            {
+                Title = "Item #1",
+                Status = DocumentStatus.Draft
+            });
+            var matchingItem = await Adapter.UpsertItemAsync(new ContentItem
+            {
+                Title = "Item #2",
+                Status = DocumentStatus.Approved
+            });
+
+            var model = new EdmModelBuilder()
+                .AddEntity<ContentItem>(nameof(ContentItem.Id), "contentitems")
+                .Build();
+
+            var query = model
+                .CreateUriParser("https://api.company.com/contentitems?$filter=status eq Denomica.Cosmos.Tests.DocumentStatus'Approved'")
+                .CreateQueryDefinition();
+
+            var contentItems = await Adapter.EnumItemsAsync<ContentItem>(query).ToListAsync();
+            Assert.AreEqual(1, contentItems.Count);
+            Assert.AreEqual(matchingItem.Resource.Id, contentItems.First().Id);
         }
 
         [TestMethod]
@@ -216,6 +254,72 @@ namespace Denomica.Cosmos.Tests
             Assert.AreEqual(1, periods.Count);
             var first = periods.First();
             Assert.AreEqual(tp1.Resource.Id, first.Id);
+        }
+
+        [TestMethod]
+        public async Task QueryOdata08_FiltersOnNestedProperty()
+        {
+            var matchingDocument = await Adapter.UpsertItemAsync(new NestedDocument
+            {
+                DataSource = new DataSource
+                {
+                    Key = "ds1",
+                    Type = "api"
+                }
+            });
+            await Adapter.UpsertItemAsync(new NestedDocument
+            {
+                DataSource = new DataSource
+                {
+                    Key = "ds2",
+                    Type = "api"
+                }
+            });
+
+            var query = new EdmModelBuilder()
+                .AddEntity<NestedDocument>(nameof(NestedDocument.Id), "nested-documents")
+                .Build()
+                .CreateUriParser("https://api.company.com/nested-documents?$filter=dataSource/key eq 'ds1'")
+                .CreateQueryDefinition();
+
+            var documents = await Adapter.EnumItemsAsync<NestedDocument>(query).ToListAsync();
+
+            Assert.AreEqual(1, documents.Count);
+            Assert.AreEqual(matchingDocument.Resource.Id, documents.First().Id);
+            Assert.AreEqual("ds1", documents.First().DataSource.Key);
+        }
+
+        [TestMethod]
+        public async Task QueryOdata09_FiltersOnAnotherNestedProperty()
+        {
+            await Adapter.UpsertItemAsync(new NestedDocument
+            {
+                DataSource = new DataSource
+                {
+                    Key = "ds1",
+                    Type = "api"
+                }
+            });
+            var matchingDocument = await Adapter.UpsertItemAsync(new NestedDocument
+            {
+                DataSource = new DataSource
+                {
+                    Key = "ds2",
+                    Type = "queue"
+                }
+            });
+
+            var query = new EdmModelBuilder()
+                .AddEntity<NestedDocument>(nameof(NestedDocument.Id), "nested-documents")
+                .Build()
+                .CreateUriParser("https://api.company.com/nested-documents?$filter=dataSource/type eq 'queue'")
+                .CreateQueryDefinition();
+
+            var documents = await Adapter.EnumItemsAsync<NestedDocument>(query).ToListAsync();
+
+            Assert.AreEqual(1, documents.Count);
+            Assert.AreEqual(matchingDocument.Resource.Id, documents.First().Id);
+            Assert.AreEqual("queue", documents.First().DataSource.Type);
         }
 
     }

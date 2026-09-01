@@ -1,9 +1,11 @@
 ﻿using Microsoft.Azure.Cosmos;
+using Microsoft.OData;
 using Microsoft.OData.UriParser;
 using System;
 using System.Text;
 using Denomica.Cosmos;
 using Denomica.OData;
+using System.Globalization;
 using System.Linq;
 
 namespace Denomica.Cosmos.Odata
@@ -133,6 +135,14 @@ namespace Denomica.Cosmos.Odata
             {
                 builder.AppendFilterNode((SingleValuePropertyAccessNode)node);
             }
+            else if (node is SingleNavigationNode)
+            {
+                builder.AppendFilterNode((SingleNavigationNode)node);
+            }
+            else if (node is ResourceRangeVariableReferenceNode)
+            {
+                builder.AppendQueryText("c");
+            }
             else if (node is ConstantNode)
             {
                 builder.AppendFilterNode((ConstantNode)node);
@@ -205,9 +215,22 @@ namespace Denomica.Cosmos.Odata
 
         private static QueryDefinitionBuilder AppendFilterNode(this QueryDefinitionBuilder builder, SingleValuePropertyAccessNode node)
         {
+            builder.AppendFilterNode(node.Source);
+
             return builder
-                .AppendQueryText("c[\"")
+                .AppendQueryText("[\"")
                 .AppendQueryText(node.Property.Name)
+                .AppendQueryText("\"]")
+                ;
+        }
+
+        private static QueryDefinitionBuilder AppendFilterNode(this QueryDefinitionBuilder builder, SingleNavigationNode node)
+        {
+            builder.AppendFilterNode(node.Source);
+
+            return builder
+                .AppendQueryText("[\"")
+                .AppendQueryText(node.NavigationProperty.Name)
                 .AppendQueryText("\"]")
                 ;
         }
@@ -217,6 +240,34 @@ namespace Denomica.Cosmos.Odata
             var name = $"@p{builder.Parameters.Count}";
 
             object value = node.Value;
+            if (value is ODataEnumValue enumValue)
+            {
+                var enumText = enumValue.Value;
+                var enumValueStart = enumText.IndexOf('\'');
+                if (enumValueStart >= 0)
+                {
+                    var enumValueEnd = enumText.LastIndexOf('\'');
+                    enumText = enumText.Substring(enumValueStart + 1, (enumValueEnd > enumValueStart ? enumValueEnd : enumText.Length) - enumValueStart - 1);
+                }
+
+                if (long.TryParse(enumText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var enumNumericValue))
+                {
+                    return builder
+                        .AppendQueryText(" ")
+                        .AppendQueryText(enumNumericValue.ToString(CultureInfo.InvariantCulture));
+                }
+                else if (node.TypeReference?.Definition is Microsoft.OData.Edm.IEdmEnumType enumType)
+                {
+                    var member = enumType.Members.FirstOrDefault(x => x.Name == enumText);
+                    if (member != null)
+                    {
+                        return builder
+                            .AppendQueryText(" ")
+                            .AppendQueryText(member.Value.Value.ToString(CultureInfo.InvariantCulture));
+                    }
+                }
+            }
+
             if (value is Microsoft.OData.Edm.Date)
             {
                 // We need to convert an Edm.Date to a DateOnly struct, because otherwise filtering on dates

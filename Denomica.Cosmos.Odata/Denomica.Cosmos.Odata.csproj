@@ -4,7 +4,7 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<Title>Denomica.Cosmos.Odata</Title>
-		<Version>2.0.2</Version>
+		<Version>2.1.0</Version>
 		<Authors>Mika Berglund</Authors>
 		<Company>Denomica Oy</Company>
 		<Description>A library that exposes functionality for converting OData parameters into a QueryDefinition object for Cosmos DB.</Description>
@@ -19,7 +19,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Denomica.Odata" Version="1.0.1" />
+		<PackageReference Include="Denomica.Odata" Version="1.1.0" />
 	</ItemGroup>
 
 	<ItemGroup>
