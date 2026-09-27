@@ -602,13 +602,19 @@ namespace Denomica.Cosmos
             PageResult<object> result = new PageResult<object>(this, query, requestOptions: requestOptions);
             var items = new List<object>();
             var iterator = this.Container.GetItemQueryIterator<object>(query, continuationToken, requestOptions: requestOptions);
-            if (iterator.HasMoreResults)
+            bool readMore = iterator.HasMoreResults;
+            while(readMore)
             {
                 var response = await iterator.ReadNextAsync();
-                if(this.IsContinuationTokenSupported(response))
+                if (this.IsContinuationTokenSupported(response))
                 {
                     result.ContinuationToken = response.ContinuationToken;
                 }
+
+                // Cosmos can return an empty intermediate page while the iterator still has results. Keep reading
+                // the same iterator in that case so queries such as ranked full-text searches don't appear empty.
+                readMore = response.Count == 0 && iterator.HasMoreResults;
+
                 result.StatusCode = response.StatusCode;
                 result.RequestCharge = response.RequestCharge;
 

@@ -26,6 +26,10 @@ The following packages can be used together with this library to provide additio
 
 Major improvements in various versions of this library.
 
+### v1.0.4
+
+Fixed query result retrieval when Cosmos DB returns an empty intermediate page while the feed iterator still has more results. The adapter now continues reading the same iterator until it finds items or reaches the end, while preserving continuation-token pagination. This fixes ranked full-text queries that could otherwise appear to return no results.
+
 ### v1.0.3
 
 Fixed a bug that caused an exception to be thrown when accessing items and using the `VectorDistance` function in the `order by` clause. Such queries dot not support accessing the `ContinuationToken` property of the `FeedResponse<T>` object.
